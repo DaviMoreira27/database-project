@@ -1,14 +1,12 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-import oracledb
 import os
 
-user = os.getenv('DB_USER')
-password = os.getenv('DB_PASSWORD')
-host = os.getenv('DB_HOST')
+import oracledb
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-if (user is None or password is None or host is None):
-    os._exit(os.EX_IOERR)
+user = os.environ["DB_USER"])
+password = os.environ["DB_PASSWORD"]
+host = os.environ["DB_HOST"]
 
 connection = oracledb.connect(user=user, password=password, dsn=host)
 cursor = connection.cursor()
@@ -29,16 +27,20 @@ cursor.execute("""
 
 connection.commit()
 
+
 class Item(BaseModel):
     name: str
 
+
 app = FastAPI()
+
 
 @app.post("/items/")
 def create_item(item: Item):
     cursor.execute("INSERT INTO test_table (name) VALUES (:name)", [item.name])
     connection.commit()
     return {"message": "Item inserted", "name": item.name}
+
 
 @app.get("/items/")
 def list_items():

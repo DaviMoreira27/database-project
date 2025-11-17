@@ -16,10 +16,10 @@ To run in dev mode this application, firstly you need to activate the virtual en
 ```
 
 The `<venv>` notation refers to installation path of the virtual environment, for my case, when the current path is the project itself,
-`/home/davisantana/projects/database-project`, I can simply run the  following command:
+`/home/davisantana/projects/database-project/backend/.venv`, I can simply run the  following command:
 
 ```bash
-source ./bin/activate
+source .venv/bin/activate
 ```
 If the terminal informs you that it was not possible to find the path, maybe you need to initiate a virtual environment first. For this you can run:
 
@@ -63,7 +63,7 @@ Note that this command will start a temporary container to run the database, aft
 
 ```bash
 podman volume create pgdata
-podman run -d \
+podman run --replace -d \
   --name postgres-db \
   -e POSTGRES_USER=testuser \
   -e POSTGRES_PASSWORD=123456789 \
@@ -77,8 +77,13 @@ podman run -d \
 
 To access the database you can run:
 
-```bash
+```bash 
 podman exec -it postgres-db psql -U testuser -d db-project
+```
+
+To create the schema and insert the data, you can run:
+```bash
+podman exec -i postgres-db psql -U testuser -d db-project < schema.sql
 ```
 
 ## Create the .env

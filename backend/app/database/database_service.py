@@ -1,11 +1,16 @@
-import os
-import asyncpg
 import logging
+import os
+
+import asyncpg
+import dotenv
 
 logger = logging.getLogger(__name__)
+dotenv.load_dotenv()
+
 
 class InternalDatabaseError(Exception):
     """Erro interno de conexão com o banco."""
+
     pass
 
 
@@ -21,12 +26,12 @@ class DatabaseService:
         try:
             return await asyncpg.connect(self.database_string)
         except (
-            asyncpg.InvalidCatalogNameError,                 # banco não existe
+            asyncpg.InvalidCatalogNameError,  # banco não existe
             asyncpg.InvalidAuthorizationSpecificationError,  # user inválido
-            asyncpg.InvalidPasswordError,                    # senha incorreta
-            asyncpg.ConnectionDoesNotExistError,             # host/porta errados
-            asyncpg.CannotConnectNowError,                   # servidor indisponível
-            asyncpg.TooManyConnectionsError,                 # max connections
+            asyncpg.InvalidPasswordError,  # senha incorreta
+            asyncpg.ConnectionDoesNotExistError,  # host/porta errados
+            asyncpg.CannotConnectNowError,  # servidor indisponível
+            asyncpg.TooManyConnectionsError,  # max connections
         ) as e:
             logger.error(f"Erro ao conectar no PostgreSQL: {e}")
             raise InternalDatabaseError("Falha interna ao conectar ao banco") from e

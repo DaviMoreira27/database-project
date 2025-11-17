@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
-from user_types import LoginBody
-from user_services import UserService
-
+from app.user.user_services import UserService
+from app.user.user_types import LoginBody
 
 router = APIRouter()
 user_service = UserService()
+
 
 @router.post("/login")
 async def login_user(body: LoginBody):

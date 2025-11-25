@@ -1,22 +1,23 @@
 CREATE TABLE IF NOT EXISTS endereco (
-    cep        CHAR(8)      NOT NULL,
+    cep        VARCHAR(8)      NOT NULL,
     rua        VARCHAR(150) NOT NULL,
     numero     VARCHAR(10)  NOT NULL,
     cidade     VARCHAR(100) NOT NULL,
     uf         CHAR(2)      NOT NULL,
+
     PRIMARY KEY (cep, rua, numero)
 );
 
 CREATE TABLE IF NOT EXISTS usuario (
-    cpf             CHAR(15)      NOT NULL,
+    cpf             VARCHAR(11)      NOT NULL,
     cargo           VARCHAR(100)  NOT NULL,
-    cep             CHAR(10)       NOT NULL,
+    cep             VARCHAR(10)       NOT NULL,
     rua             VARCHAR(150)  NOT NULL,
     numero          VARCHAR(10)   NOT NULL,
     nome            VARCHAR(150)  NOT NULL,
     email           VARCHAR(150)  NOT NULL UNIQUE,
     senha           VARCHAR(200)  NOT NULL,
-    data_nascimento DATE          NOT NULL,
+    data_nascimento DATE          NULL,
     PRIMARY KEY (cpf),
     FOREIGN KEY (cep, rua, numero)
         REFERENCES endereco (cep, rua, numero)
@@ -24,15 +25,14 @@ CREATE TABLE IF NOT EXISTS usuario (
 
 
 CREATE TABLE IF NOT EXISTS provedora {
-    cnpj CHAR(16) NOT NULL,
+    cnpj VARCHAR(16) NOT NULL -- 2 a mais por que sim,
 
     PRIMARY KEY (CNPJ),
 }
 
 CREATE TABLE IF NOT EXISTS gerente {
-    cpf CHAR(11) NOT NULL,
-    provedora CHAR(16) NOT NULL,
-
+    cpf VARCHAR(11) NOT NULL,
+    provedora VARCHAR(16) NOT NULL,
 
     PRIMARY KEY (cpf),
     FOREIGN KEY (provedora)
@@ -40,28 +40,27 @@ CREATE TABLE IF NOT EXISTS gerente {
 }
 
 CREATE TABLE IF NOT EXISTS cliente {
-    cpf CHAR(11) NOT NULL,
+    cpf VARCHAR(11) NOT NULL,
     pontuacao NUMBER NULL,
-
 
     PRIMARY KEY (cpf),
 }
 
 CREATE TABLE IF NOT EXISTS administrador {
-    cpf CHAR(11) NOT NULL,
- 
+    cpf VARCHAR(11) NOT NULL,
+
     PRIMARY KEY (cpf),
 }
 
 CREATE TABLE IF NOT EXISTS infraestrutura (
-    nRegistro  UUID         NOT NULL DEFAULT gen_random_uuid(),
-    provedora  CHAR(14)     NOT NULL,
-    tipo       VARCHAR(100) NOT NULL,
-    cep        CHAR(8)      NOT NULL,
+    n_registro VARCHAR(26)  NOT NULL -- Gerado pela aplicação,
+    provedora  VARCHAR(14)     NOT NULL,
+    tipo       VARCHAR(100) NOT NULL -- TODO: Ponto de retirada ou estação de recarga, talvez seja bom colocar um ENUM,
+    cep        VARCHAR(8)      NOT NULL,
     rua        VARCHAR(150) NOT NULL,
     numero     VARCHAR(10)  NOT NULL,
 
-    PRIMARY KEY (nRegistro),
+    PRIMARY KEY (n_registro),
 
     FOREIGN KEY (provedora)
         REFERENCES provedora (cnpj),
@@ -72,10 +71,10 @@ CREATE TABLE IF NOT EXISTS infraestrutura (
 
 CREATE TABLE IF NOT EXISTS reporte_de_problema (
     protocolo       UUID         NOT NULL DEFAULT gen_random_uuid(),
-    usuario         CHAR(11)     NOT NULL,
-    infraestrutura  UUID         NOT NULL,
-    data            TIMESTAMP    NOT NULL,
-    titulo          VARCHAR(200) NOT NULL,
+    usuario         VARCHAR(11)     NOT NULL,
+    infraestrutura  VARCHAR(26)  NOT NULL,
+    data            TIMESTAMP    NOT NULL DEFAULT current_timestamp(),
+    titulo          VARCHAR(100) NOT NULL,
     descricao       TEXT         NOT NULL,
 
     PRIMARY KEY (protocolo),
@@ -84,20 +83,20 @@ CREATE TABLE IF NOT EXISTS reporte_de_problema (
         REFERENCES usuario (cpf),
 
     FOREIGN KEY (infraestrutura)
-        REFERENCES infraestrutura (nRegistro)
+        REFERENCES infraestrutura (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS avaliacao (
     id             UUID         NOT NULL DEFAULT gen_random_uuid(),
-    infraestrutura UUID         NOT NULL,
-    cliente        CHAR(11)     NOT NULL,
-    nota           INTEGER        NULL,
+    infraestrutura VARCHAR(26)         NOT NULL,
+    cliente        VARCHAR(11)     NOT NULL,
+    nota           INTEGER        NOT NULL,
     descricao      TEXT         NULL,
 
     PRIMARY KEY (id),
 
     FOREIGN KEY (infraestrutura)
-        REFERENCES infraestrutura (nRegistro),
+        REFERENCES infraestrutura (n_registro),
 
     FOREIGN KEY (cliente)
         REFERENCES cliente (cpf)
@@ -110,14 +109,14 @@ CREATE TYPE STATUS_BICICLETA AS ENUM (
     'ESTACIONADO'
 );
 
-CREATE TABLE IF NOT EXISTS BICICLETA (
-    codigo        VARCHAR(20)        NOT NULL,
+CREATE TABLE IF NOT EXISTS bicicleta (
+    codigo        VARCHAR(26)        NOT NULL -- Gerado pela aplicação,
     provedora     VARCHAR(16)        NOT NULL,
-    modelo        VARCHAR(100)    NOT NULL,
-    valor         NUMERIC(10,2)   NOT NULL,
+    modelo        VARCHAR(100)    NULL,
+    valor         NUMERIC(10,2)   NOT NULL -- TODO: Tenho que verificar oq isso deveria significar,
     bateria       INTEGER         NOT NULL,
     status        STATUS_BICICLETA NOT NULL,
-    local_origem  VARCHAR(150)    NOT NULL,
+    local_origem  VARCHAR(150)    NOT NULL -- TODO: Talvez tenhamos que por esse local_origem como uma FK para ponto_retirada
 
     PRIMARY KEY (codigo),
 
@@ -127,11 +126,11 @@ CREATE TABLE IF NOT EXISTS BICICLETA (
 
 CREATE TABLE IF NOT EXISTS carro (
     placa                 VARCHAR(20)   NOT NULL,
-    cliente               CHAR(11)      NOT NULL,
-    capacidade_bateria    INTEGER       NOT NULL,
-    autonomia             INTEGER       NOT NULL,
-    adaptador             VARCHAR(50)   NOT NULL,
-    modelo                VARCHAR(100)  NOT NULL,
+    cliente               VARCHAR(11)      NOT NULL,
+    capacidade_bateria    INTEGER       NULL,
+    autonomia             INTEGER       NULL,
+    adaptador             VARCHAR(50)   NULL,
+    modelo                VARCHAR(100)  NULL,
 
     PRIMARY KEY (placa),
 
@@ -146,7 +145,7 @@ CREATE TYPE STATUS_TOTEM AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS totens_de_recarga (
-    n_registro  VARCHAR(20)  NOT NULL DEFAULT,
+    n_registro  VARCHAR(26)  NOT NULL,
     capacidade  INTEGER      NOT NULL,
     preco       NUMERIC(10,2) NOT NULL,
     voltagem    INTEGER      NOT NULL,
@@ -155,10 +154,13 @@ CREATE TABLE IF NOT EXISTS totens_de_recarga (
     status      STATUS_TOTEM NOT NULL,
 
     PRIMARY KEY (n_registro)
+
+    FOREIGN KEY (n_registro)
+        REFERENCES infraestrutura (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS horario_totens (
-    totem    VARCHAR(20) NOT NULL,
+    totem    VARCHAR(26) NOT NULL,
     horario  TSRANGE   NOT NULL,
 
     PRIMARY KEY (totem, horario),
@@ -171,26 +173,26 @@ CREATE TABLE IF NOT EXISTS manutencao_infraestrutura (
     protocolo       UUID       NOT NULL DEFAULT gen_random_uuid(),
     horario         TSRANGE    NOT NULL,
     status          VARCHAR(50) NOT NULL,
-    infraestrutura  UUID       NOT NULL,
-    gerente         CHAR(11)   NOT NULL,
+    infraestrutura  VARCHAR(26)       NOT NULL,
+    gerente         VARCHAR(11)   NOT NULL,
 
     PRIMARY KEY (protocolo),
 
     FOREIGN KEY (infraestrutura)
-        REFERENCES infraestrutura (nRegistro),
+        REFERENCES infraestrutura (n_registro),
 
     FOREIGN KEY (gerente)
         REFERENCES gerente (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS sessao_recarga (
-    totem            VARCHAR(20)    NOT NULL,
+    totem            VARCHAR(26)    NOT NULL,
     horario_inicio   TIMESTAMP      NOT NULL,
     data             DATE           NOT NULL,
-    carro            CHAR(7)        NOT NULL,
+    carro            VARCHAR(20)        NOT NULL,
     kwh_consumidos   NUMERIC(10,2)  NOT NULL,
     valor            NUMERIC(10,2)  NOT NULL,
-    emissao_co2      NUMERIC(10,3)  NOT NULL,
+    emissao_co2      NUMERIC(10,3)  NULL,
 
     PRIMARY KEY (totem, horario_inicio, data, carro),
 
@@ -204,40 +206,22 @@ CREATE TYPE STATUS_PONTO AS ENUM (
     'ATIVO'
 );
 
-CREATE TABLE IF NOT EXISTS pontos_de_retirada (
-    n_registro              VARCHAR(20)   NOT NULL,
-    capacidade              INTEGER       NOT NULL,
-    bicicletas_disponiveis  INTEGER       NOT NULL,
-    status                  STATUS_PONTO  NOT NULL,
-    voltagem                INTEGER       NOT NULL,
+CREATE TABLE IF NOT EXISTS pontos_de_retirada ( -- Tabela que armazena os pontos de retirada de bicicletas
+    n_registro              VARCHAR(26)   NOT NULL, -- Gerado pela aplicação
+    capacidade              INTEGER       NOT NULL, -- Quantidade total de biciletas que o ponto pode comportar
+    bicicletas_disponiveis  INTEGER       NOT NULL, -- Numero de bicicletas atualmente disponíveis no ponto
+    status                  STATUS_PONTO  NOT NULL, -- Status operacional do ponto de retirada: VAZIO, MANUNTECAO ou ATIVO
+    voltagem                INTEGER       NOT NULL, -- Voltagem disponível no ponto (quando aplicável)
 
     PRIMARY KEY (n_registro)
+
+    FOREIGN KEY (n_registro)
+        REFERENCES infraestrutura (n_registro)
 );
 
-COMMENT ON TABLE pontos_de_retirada IS
-    'Tabela que armazena os pontos de retirada de bicicletas.';
-
-COMMENT ON COLUMN pontos_de_retirada.n_registro IS
-    'Identificador único do ponto de retirada, gerado pela aplicação.';
-
-COMMENT ON COLUMN pontos_de_retirada.capacidade IS
-    'Quantidade total de bicicletas que o ponto pode comportar.';
-
-COMMENT ON COLUMN pontos_de_retirada.bicicletas_disponiveis IS
-    'Número de bicicletas atualmente disponíveis no ponto.';
-
-COMMENT ON COLUMN pontos_de_retirada.status IS
-    'Status operacional do ponto de retirada: VAZIO, MANUTENCAO ou ATIVO.';
-
-COMMENT ON COLUMN pontos_de_retirada.voltagem IS
-    'Voltagem disponível no ponto (quando aplicável).';
-
-COMMENT ON COLUMN pontos_de_retirada.descricao IS
-    'Descrição geral sobre o ponto de retirada.';
-
 CREATE TABLE IF NOT EXISTS retirada_bicicleta (
-    bicicleta       VARCHAR(20)     NOT NULL,
-    ponto_retirada  VARCHAR(20)  NOT NULL,
+    bicicleta       VARCHAR(26)     NOT NULL,
+    ponto_retirada  VARCHAR(26)  NOT NULL,
 
     PRIMARY KEY (bicicleta, ponto_retirada),
 

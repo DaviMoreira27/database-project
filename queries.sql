@@ -1,0 +1,1 @@
+-- Here we will put all the 5 medium to high complexity queries required, only one of them will be used in our application

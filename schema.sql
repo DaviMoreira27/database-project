@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS administrador (
 );
 
 CREATE TABLE IF NOT EXISTS infraestrutura (
-    n_registro VARCHAR(26),
+    n_registro VARCHAR(26)  NOT NULL,
     provedora  VARCHAR(16)  NOT NULL,
     tipo       VARCHAR(100) NOT NULL,
     cep        VARCHAR(8)   NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS infraestrutura (
 );
 
 CREATE TABLE IF NOT EXISTS reporte_de_problema (
-    protocolo       UUID          DEFAULT gen_random_uuid(),
+    protocolo       UUID          NOT NULL DEFAULT gen_random_uuid(),
     usuario         VARCHAR(11)   NOT NULL,
     infraestrutura  VARCHAR(26)   NOT NULL,
     data            TIMESTAMP     NOT NULL DEFAULT current_timestamp,
@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS pontos_de_retirada (
     capacidade INTEGER,
     status     STATUS_PONTO,
     voltagem   INTEGER       NOT NULL,
+    bicicletas_disponiveis  INTEGER       NOT NULL,
     PRIMARY KEY (n_registro),
     FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro)
 );

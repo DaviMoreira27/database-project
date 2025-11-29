@@ -1,64 +1,164 @@
--- 1. Totens ativos com média de KWh consumidos e total de sessões
-SELECT 
-    t.n_registro,
-    AVG(s.kwh_consumidos) AS media_kwh,
-    COUNT(s.totem) AS total_sessoes
-FROM totens_de_recarga t
-LEFT JOIN sessao_recarga s 
-    ON s.totem = t.n_registro
-WHERE t.status = 'ATIVO'
-GROUP BY t.n_registro;
+-- Qual porcentagem das bicicletas estacionadas da provedora cada ponto possui
+SELECT
+    pr.n_registro AS ponto_retirada,
 
--- 2. Clientes que já avaliaram todas as infraestruturas que usaram (DIVISÃO RELACIONAL)
-SELECT c.cpf, c.pontuacao
-FROM cliente c
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM sessao_recarga s
-    WHERE s.carro IN (
-        SELECT placa 
-        FROM carro 
-        WHERE cliente = c.cpf
-    )
-    AND NOT EXISTS (
-        SELECT 1
-        FROM avaliacao a
-        WHERE a.infraestrutura = s.totem
-          AND a.cliente = c.cpf
-    )
-);
+    -- Quantas bicicletas estacionadas existem na provedora (conjunto divisor)
+    (
+        SELECT COUNT(*)
+        FROM bicicleta b2
+        WHERE b2.provedora = :cnpj_provedora
+          AND b2.status = 'ESTACIONADO'
+    ) AS total_estacionadas,
 
--- 3. Infraestruturas com mais de uma manutenção concluída
-SELECT 
-    m.infraestrutura,
-    COUNT(*) AS total_manutencoes
-FROM manutencao_infraestrutura m
-WHERE m.status = 'Concluída'
-GROUP BY m.infraestrutura
-HAVING COUNT(*) > 1;
+    -- Quantas dessas bicicletas o ponto contém
+    (
+        SELECT COUNT(DISTINCT b.codigo)
+        FROM retirada_bicicleta rb
+        JOIN bicicleta b ON b.codigo = rb.bicicleta
+        WHERE rb.ponto_retirada = pr.n_registro
+          AND b.provedora = :cnpj_provedora
+          AND b.status = 'ESTACIONADO'
+    ) AS estacionadas_no_ponto,
 
--- 4. Lista de bicicletas com nome da provedora, status e indicação se precisam de recarga
-SELECT 
-    b.codigo,
-    b.modelo,
-    b.bateria,
-    b.status,
-    p.cnpj AS provedora,
-    CASE 
-        WHEN b.bateria < 20 THEN 'SIM'
-        ELSE 'NAO'
-    END AS precisa_recarga
-FROM bicicleta b
-JOIN provedora p 
-    ON b.provedora = p.cnpj;
+    -- Razão: (quantidade possuída / conjunto divisor)
+    CASE
+        WHEN (
+            SELECT COUNT(*)
+            FROM bicicleta b2
+            WHERE b2.provedora = :cnpj_provedora
+              AND b2.status = 'ESTACIONADO'
+        ) = 0
+        THEN 0
+        ELSE
+            (
+                (
+                    SELECT COUNT(DISTINCT b.codigo)
+                    FROM retirada_bicicleta rb
+                    JOIN bicicleta b ON b.codigo = rb.bicicleta
+                    WHERE rb.ponto_retirada = pr.n_registro
+                      AND b.provedora = :cnpj_provedora
+                      AND b.status = 'ESTACIONADO'
+                )::NUMERIC
+                /
+                (
+                    SELECT COUNT(*)
+                    FROM bicicleta b2
+                    WHERE b2.provedora = :cnpj_provedora
+                      AND b2.status = 'ESTACIONADO'
+                )
+            )
+    END AS percentual_relacional
 
--- 5. Ranking de usuários por quantidade total de problemas reportados
-SELECT 
-    u.cpf,
-    u.nome,
-    COUNT(r.protocolo) AS total_reportes
-FROM usuario u
-LEFT JOIN reporte_de_problema r 
-    ON u.cpf = r.usuario
-GROUP BY u.cpf, u.nome
-ORDER BY total_reportes DESC;
+FROM pontos_de_retirada pr
+JOIN infraestrutura i ON i.n_registro = pr.n_registro
+WHERE i.provedora = :cnpj_provedora
+ORDER BY percentual_relacional DESC;
+-- RETORNO:
+-- | ponto_retirada | total_estacionadas | estacionadas_no_ponto | percentual_relacional |
+-- | -------------- | ------------------ | --------------------- | --------------------- |
+-- | P10            | 3                  | 2                     | 0.6667                |
+-- | P20            | 3                  | 1                     | 0.3333                |
+-- | P30            | 3                  | 0                     | 0.0000                |
+
+----------------------------------------------------------------------------------------------------------------------------
+
+-- Para cada infraestrutura da provedora: conta quantos problemas foram reportados,
+-- conta quantas avaliações ela recebeu, calcula a razão problemas/avaliações. e ordena da pior para melhor (dificil)
+SELECT
+    i.n_registro,
+
+    COALESCE(
+        (
+            SELECT COUNT(*)
+            FROM reporte_de_problema r
+            WHERE r.infraestrutura = i.n_registro
+        ),
+        0
+    ) AS problemas,
+
+    COALESCE(
+        (
+            SELECT COUNT(*)
+            FROM avaliacao a
+            WHERE a.infraestrutura = i.n_registro
+        ),
+        0
+    ) AS avaliacoes,
+
+    CASE
+        WHEN COALESCE(
+                (SELECT COUNT(*) FROM avaliacao a WHERE a.infraestrutura = i.n_registro),
+                0
+             ) = 0
+        THEN NULL
+        ELSE
+            COALESCE(
+                (SELECT COUNT(*) FROM reporte_de_problema r WHERE r.infraestrutura = i.n_registro),
+                0
+            )::NUMERIC
+            /
+            (SELECT COUNT(*) FROM avaliacao a WHERE a.infraestrutura = i.n_registro)
+    END AS razao_problema_por_avaliacao
+
+FROM infraestrutura i
+WHERE i.provedora = :cnpj_provedora
+ORDER BY razao_problema_por_avaliacao DESC NULLS LAST;
+-- RETORNO:
+-- | n_registro | problemas | avaliacoes | razao_problema_por_avaliacao |
+-- | ---------- | --------- | ---------- | ---------------------------- |
+-- | INF1       | 2         | 2          | 1.0                          |
+-- | INF2       | 0         | 1          | 0.0                          |
+-- | INF3       | 1         | 0          | NULL                         |
+
+----------------------------------------------------------------------------------------------------------------------------
+
+-- Taxa de ocupação de cada ponto (bicicletas disponíveis / capacidade) (media) ??????
+SELECT
+    pr.n_registro,
+    pr.capacidade,
+    pr.bicicletas_disponiveis,
+    (pr.bicicletas_disponiveis::NUMERIC / pr.capacidade) AS taxa_ocupacao
+FROM pontos_de_retirada pr
+JOIN infraestrutura i ON i.n_registro = pr.n_registro
+WHERE i.provedora = :cnpj_provedora;
+-- RETORNO:
+-- | n_registro | capacidade | bicicletas_disponiveis |
+-- | ---------- | ---------- | ---------------------- |
+-- | P1         | 10         | 4                      |
+-- | P2         | 6          | 6                      |
+
+----------------------------------------------------------------------------------------------------------------------------
+
+-- Soma total do valor das sessões de recarga por mês. (media)
+SELECT
+    DATE_TRUNC('month', sr.data) AS mes,
+    SUM(sr.valor) AS receita
+FROM sessao_recarga sr
+JOIN totens_de_recarga td     ON td.n_registro = sr.totem
+JOIN infraestrutura i         ON i.n_registro = td.n_registro
+WHERE i.provedora = :cnpj_provedora
+GROUP BY DATE_TRUNC('month', sr.data)
+ORDER BY mes;
+-- RETORNO:
+-- | mes        | receita  |
+-- | ---------- | -----   |
+-- | 2025-01-01 | 3000.00 |
+-- | 2025-02-01 | 6423.00 |
+
+----------------------------------------------------------------------------------------------------------------------------
+
+-- Quantidade de sessões de recarga por dia. (media)
+SELECT
+    sr.data,
+    COUNT(*) AS total_sessoes
+FROM sessao_recarga sr
+JOIN totens_de_recarga td ON td.n_registro = sr.totem
+JOIN infraestrutura i ON i.n_registro = td.n_registro
+WHERE i.provedora = :cnpj_provedora
+GROUP BY sr.data
+ORDER BY sr.data;
+-- RETORNO:
+-- | data       | total_sessoes |
+-- | ---------- | ------------- |
+-- | 2025-01-05 | 2             |
+-- | 2025-01-06 | 3             |

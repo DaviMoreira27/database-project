@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS gerente (
     provedora VARCHAR(16),
     PRIMARY KEY (cpf),
     FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
+    FOREIGN KEY (cpf) REFERENCES Usuário (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS cliente (
@@ -42,7 +43,8 @@ CREATE TABLE IF NOT EXISTS cliente (
 
 CREATE TABLE IF NOT EXISTS administrador (
     cpf VARCHAR(11),
-    PRIMARY KEY (cpf)
+    PRIMARY KEY (cpf),
+    FOREIGN KEY (cpf) REFERENCES Usuário (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS infraestrutura (
@@ -54,7 +56,8 @@ CREATE TABLE IF NOT EXISTS infraestrutura (
     numero     VARCHAR(10)  NOT NULL,
     PRIMARY KEY (n_registro, provedora),
     FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
-    FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero)
+    FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
+    UNIQUE (cep, rua, numero)
 );
 
 CREATE TABLE IF NOT EXISTS reporte_de_problema (
@@ -89,6 +92,7 @@ CREATE TABLE IF NOT EXISTS bicicleta (
     status        STATUS_BICICLETA ,
     local_origem  VARCHAR(26),
     PRIMARY KEY (codigo),
+    FOREIGN KEY (provedora) REFERENCES provedora (CNPJ)
 );
 
 CREATE TABLE IF NOT EXISTS carro (

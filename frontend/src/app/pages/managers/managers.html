@@ -1,0 +1,134 @@
+<div class="flex h-screen w-full overflow-hidden bg-slate-50">
+  <app-navbar></app-navbar>
+
+  <div class="flex flex-col flex-1 h-full overflow-hidden relative">
+    <app-header></app-header>
+
+    <main class="flex-1 overflow-y-auto p-12">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <input
+          pInputText
+          type="text"
+          placeholder="Pesquisar"
+          class="w-60 h-11 border border-slate-300 px-3 rounded"
+          (input)="updateSearch($event)"
+        />
+
+        <button
+          pButton
+          type="button"
+          icon="pi pi-plus"
+          class="p-button-primary h-11"
+          (click)="newManager()"
+        ></button>
+      </div>
+
+      <p-table [value]="filtereds()" class="shadow border border-slate-200">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="font-semibold">CPF</th>
+            <th class="font-semibold">Nome</th>
+            <th class="font-semibold">Email</th>
+            <th class="font-semibold">Cargo</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.cpf }}</td>
+            <td>{{ item.nome }}</td>
+            <td>{{ item.email }}</td>
+            <td>{{ item.cargo }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </main>
+  </div>
+</div>
+
+<p-dialog
+  header="Novo Gerente"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="true"
+  [style]="{ width: '500px' }"
+  [(visible)]="modalOpen"
+>
+  <form [formGroup]="form" class="flex flex-col gap-4">
+    <input
+      pInputText
+      type="text"
+      placeholder="CPF"
+      formControlName="cpf"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="text"
+      placeholder="Nome"
+      formControlName="nome"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="email"
+      placeholder="Email"
+      formControlName="email"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <p-select
+      [options]="roles"
+      formControlName="cargo"
+      placeholder="Cargo"
+      [style]="{ width: '100%' }"
+      [disabled]="true"
+    ></p-select>
+
+    <input
+      pInputText
+      type="text"
+      placeholder="CEP"
+      formControlName="cep"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="text"
+      placeholder="Rua"
+      formControlName="rua"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="text"
+      placeholder="Número"
+      formControlName="numero"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="date"
+      formControlName="data_nascimento"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+
+    <input
+      pInputText
+      type="password"
+      placeholder="Senha"
+      formControlName="senha"
+      class="w-full border border-slate-300 p-2 rounded"
+    />
+  </form>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Salvar" class="p-button-primary" (click)="save()"></button>
+  </ng-template>
+</p-dialog>

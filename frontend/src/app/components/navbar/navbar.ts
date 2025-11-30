@@ -20,11 +20,11 @@ export class NavbarComponent {
 
   menuItems: MenuItem[] = [
     { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
-    { label: 'Users', icon: 'pi pi-users', route: '/users' },
+    { label: 'Gerentes', icon: 'pi pi-users', route: '/managers' },
     { label: 'Reports', icon: 'pi pi-chart-line', route: '/reports' },
-    { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
-    { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
-    { label: 'Support', icon: 'pi pi-question-circle', route: '/support' },
+    { label: 'Infraestrutura', icon: 'pi pi-inbox', route: '/infra' },
+    { label: 'Configuracoes', icon: 'pi pi-cog', route: '/settings' },
+    { label: 'Suporte', icon: 'pi pi-question-circle', route: '/support' },
   ];
 
   toggleSidebar() {

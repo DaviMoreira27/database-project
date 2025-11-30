@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS usuario (
     CONSTRAINT pk_usuario PRIMARY KEY (cpf),
     CONSTRAINT fk_usuario_endereco
         FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero)
+    CONSTRAINT chk_usuario_cargo CHECK (UPPER(cargo) IN ('GERENTE', 'CLIENTE', 'ADMINISTRADOR'))
+
+
 );
 
 CREATE TABLE IF NOT EXISTS provedora (
@@ -41,7 +44,7 @@ CREATE TABLE IF NOT EXISTS gerente (
 
 CREATE TABLE IF NOT EXISTS cliente (
     cpf        VARCHAR(11),
-    pontuacao  NUMERIC,
+    pontuacao  NUMERIC SET DEFAULT 0,
 
     CONSTRAINT pk_cliente PRIMARY KEY (cpf),
     CONSTRAINT fk_cliente_usuario FOREIGN KEY (cpf) REFERENCES usuario (cpf)
@@ -65,6 +68,7 @@ CREATE TABLE IF NOT EXISTS infraestrutura (
     CONSTRAINT pk_infraestrutura PRIMARY KEY (n_registro, provedora),
     CONSTRAINT fk_infra_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
     CONSTRAINT fk_infra_endereco FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
+    CONSTRAINT chk_usuario_cargo CHECK (UPPER(cargo) IN ('TOTENS_DE_RECARGA', 'PONTOS_DE_RETIRADA'))
     UNIQUE (cep, rua, numero)
 );
 
@@ -115,7 +119,8 @@ CREATE TABLE IF NOT EXISTS carro (
     modelo               VARCHAR(100),
 
     CONSTRAINT pk_carro PRIMARY KEY (placa),
-    CONSTRAINT fk_carro_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf)
+    CONSTRAINT fk_carro_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf),
+    CONSTRAINT fk_ck_capacidade_bateria CHECK(capacidade_bateria > 0)
 );
 
 CREATE TABLE IF NOT EXISTS totens_de_recarga (
@@ -130,7 +135,9 @@ CREATE TABLE IF NOT EXISTS totens_de_recarga (
 
     CONSTRAINT pk_toten PRIMARY KEY (n_registro, provedora),
     CONSTRAINT fk_toten_infra FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro),
-    CONSTRAINT fk_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
+    CONSTRAINT fk_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
+    CONSTRAINT ck_to_capacidade CHECK(capacidade > 0),
+    CONSTRAINT ck_to_potencia CHECK(potencia > 0)
 );
 
 CREATE TABLE IF NOT EXISTS horario_totens (
@@ -178,8 +185,9 @@ CREATE TABLE IF NOT EXISTS pontos_de_retirada (
     provedora  VARCHAR(16) NOT NULL,
 
     CONSTRAINT pk_ponto_retirada PRIMARY KEY (n_registro, provedora),
-    CONSTRAINT fk_provedora_retirada FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
-    CONSTRAINT fk_pontos_infra FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro)
+    CONSTRAINT fk_provedora_retirada FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
+    CONSTRAINT fk_pontos_infra FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro),
+    CONSTRAINT ck_capacidade CHECK(capacidade > 0)
 );
 
 CREATE TABLE IF NOT EXISTS retirada_bicicleta (

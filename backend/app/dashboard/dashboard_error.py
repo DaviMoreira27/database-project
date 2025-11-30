@@ -1,0 +1,2 @@
+class DashboardQueryError(Exception):
+    pass

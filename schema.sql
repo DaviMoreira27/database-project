@@ -159,7 +159,6 @@
 
         CONSTRAINT pk_totem PRIMARY KEY (n_registro, provedora),
         CONSTRAINT fk_toten_infra FOREIGN KEY (n_registro, provedora) REFERENCES infraestrutura (n_registro, provedora),
-        CONSTRAINT fk_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
         CONSTRAINT ck_to_capacidade CHECK(capacidade > 0),
         CONSTRAINT ck_to_potencia CHECK(potencia > 0)
     );

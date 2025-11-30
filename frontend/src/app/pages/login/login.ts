@@ -34,9 +34,8 @@ export class Login {
   private readonly router = inject(Router);
 
   protected readonly roles = [
-    { label: 'Cliente', value: 'CLIENTE' },
     { label: 'Gerente', value: 'GERENTE' },
-    { label: 'Administrador', value: 'ADMINISTRADOR' },
+    { label: 'Administrador', value: 'ADMINISTRADOR', disabled: true },
   ];
 
   protected loading = signal(false);

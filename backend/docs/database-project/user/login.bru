@@ -1,7 +1,7 @@
 meta {
   name: login
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -12,12 +12,13 @@ post {
 
 body:json {
   {
-   "email": "marcos.silva@example.com",
-   "password": "senha123",
-   "login_type": "CLIENTE"
+   "email": "maria@test.com",
+   "password": "123",
+   "login_type": "GERENTE"
   }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

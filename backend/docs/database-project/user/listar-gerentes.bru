@@ -1,17 +1,17 @@
 meta {
-  name: taxa-ocupacao
+  name: listar-gerentes
   type: http
-  seq: 4
+  seq: 2
 }
 
 get {
-  url: http://localhost:8000/api/taxa-ocupacao/:cnpj
+  url: http://localhost:8000/api/listar/:cargo
   body: none
   auth: inherit
 }
 
 params:path {
-  cnpj: 000000000000001
+  cargo: GERENTE
 }
 
 settings {

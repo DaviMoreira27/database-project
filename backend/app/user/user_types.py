@@ -25,3 +25,22 @@ class UserTableResponse(BaseModel):
     email: str
     senha: str
     data_nascimento: date
+
+
+class CreateUserBody(BaseModel):
+    cpf: str
+    cargo: str
+    cep: str
+    rua: str
+    numero: str
+    cidade: str
+    uf: str
+    nome: str
+    email: str
+    senha: str
+    data_nascimento: date
+    provedora: str | None = None # obrigatório somente para gerente
+
+
+class UserTypeFilter(BaseModel):
+    cargo: LoginTypes

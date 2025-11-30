@@ -1,0 +1,20 @@
+meta {
+  name: problemas-avaliacao
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8000/api/problemas-por-avaliacao/:cnpj
+  body: none
+  auth: inherit
+}
+
+params:path {
+  cnpj: 000000000000001
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

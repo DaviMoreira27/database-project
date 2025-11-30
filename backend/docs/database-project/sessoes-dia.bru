@@ -1,0 +1,20 @@
+meta {
+  name: sessoes-dia
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/sessoes-por-dia/:cnpj
+  body: none
+  auth: inherit
+}
+
+params:path {
+  cnpj: 000000000000004
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

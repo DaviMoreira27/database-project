@@ -1,8 +1,10 @@
+from app.dashboard.dashboard_routes import router as dashboard_router
 from app.user.user_routes import router as user_router
 from fastapi import FastAPI
 
 app = FastAPI()
 app.include_router(user_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
 
 
 # @app.get("/start/")

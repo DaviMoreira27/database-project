@@ -1,172 +1,125 @@
--- ENDEREÇO
-INSERT INTO endereco (cep, rua, numero, cidade, uf)
-VALUES ('01001000', 'Praça da Sé', '100', 'São Paulo', 'SP');
+INSERT INTO endereco VALUES
+('01001000', 'Rua A', '100', 'São Paulo', 'SP'),
+('02002000', 'Rua B', '200', 'Campinas', 'SP'),
+('03003000', 'Rua C', '300', 'Santos', 'SP'),
+('04004000', 'Rua D', '400', 'Sorocaba', 'SP'),
+('05005000', 'Rua E', '500', 'Ribeirão Preto', 'SP');
 
--- USUÁRIO
-INSERT INTO usuario (
-    cpf, cargo, cep, rua, numero, nome, email, senha, data_nascimento
-) VALUES (
-    '12345678901', 'CLIENTE', '01001000', 'Praça da Sé', '100',
-    'Marcos Silva', 'marcos.silva@example.com', '$2a$10$7yeGjNx5CGxcvs.gsKgiUuMA9CpMX5SqVtuZBI764yKyyeBUwbriq', '1990-04-12' -- Password: senha123
-);
+INSERT INTO usuario VALUES
+('11111111111', 'Cliente', '01001000', 'Rua A', '100', 'Lucas', 'lucas1@email.com', 'senha1', '2000-01-01'),
+('22222222222', 'Gerente', '02002000', 'Rua B', '200', 'Maria', 'maria2@email.com', 'senha2', '1995-02-02'),
+('33333333333', 'Administrador', '03003000', 'Rua C', '300', 'João', 'joao3@email.com', 'senha3', '1990-03-03'),
+('44444444444', 'Cliente', '04004000', 'Rua D', '400', 'Ana', 'ana4@email.com', 'senha4', '1998-04-04'),
+('55555555555', 'Gerente', '05005000', 'Rua E', '500', 'Pedro', 'pedro5@email.com', 'senha5', '1985-05-05');
 
+INSERT INTO provedora VALUES
+('000000000000001'),
+('000000000000002'),
+('000000000000003'),
+('000000000000004'),
+('000000000000005');
 
--- 1. Inserção na tabela ENDERECO
--- Necessário criar antes de Usuário e Infraestrutura
-INSERT INTO endereco (cep, rua, numero, cidade, uf) VALUES
-('01001000', 'Praça da Sé', '10', 'São Paulo', 'SP'),
-('20040002', 'Rua Rio Branco', '15', 'Rio de Janeiro', 'RJ'),
-('30140071', 'Rua da Bahia', '500', 'Belo Horizonte', 'MG'),
-('70040010', 'Setor Bancário Sul', '1', 'Brasília', 'DF'),
-('80020000', 'Rua das Flores', '100', 'Curitiba', 'PR');
+INSERT INTO gerente VALUES
+('22222222222', '000000000000001'),
+('55555555555', '000000000000002'),
+('11111111111', '000000000000003'),
+('33333333333', '000000000000004'),
+('44444444444', '000000000000005');
 
--- 2. Inserção na tabela PROVEDORA
--- Necessário criar antes de Infraestrutura e Bicicleta
-INSERT INTO provedora (cnpj) VALUES
-('11111111000111'), -- EcoMove
-('22222222000122'), -- PowerCharge
-('33333333000133'), -- GreenCycle
-('44444444000144'), -- UrbanFlow
-('55555555000155'); -- ElectroCity
+INSERT INTO cliente VALUES
+('11111111111', 100),
+('22222222222', 120),
+('33333333333', 140),
+('44444444444', 160),
+('55555555555', 180);
 
--- 3. Inserção na tabela USUARIO
--- Base para Cliente, Gerente e Administrador.
--- Note que repetimos os dados de endereço exatamente como cadastrados acima.
-INSERT INTO usuario (cpf, cargo, cep, rua, numero, nome, email, senha, data_nascimento) VALUES
-('11122233344', 'Cliente Standard', '01001000', 'Praça da Sé', '10', 'João Silva', 'joao@email.com', 'senha123', '1990-05-15'),
-('22233344455', 'Cliente Premium', '20040002', 'Rua Rio Branco', '15', 'Maria Santos', 'maria@email.com', 'senha123', '1985-10-20'),
-('33344455566', 'Gerente Regional', '30140071', 'Rua da Bahia', '500', 'Carlos Oliveira', 'carlos@email.com', 'senha123', '1978-03-12'),
-('44455566677', 'Gerente Operacional', '70040010', 'Setor Bancário Sul', '1', 'Ana Souza', 'ana@email.com', 'senha123', '1992-07-30'),
-('55566677788', 'Admin Sistema', '80020000', 'Rua das Flores', '100', 'Pedro Lima', 'pedro@email.com', 'senha123', '1988-12-01'),
--- Adicionando mais usuários para cobrir todos os papéis
-('66677788899', 'Cliente', '01001000', 'Praça da Sé', '10', 'Lucas Mendes', 'lucas@email.com', 'senha123', '1995-01-10'),
-('77788899900', 'Cliente', '20040002', 'Rua Rio Branco', '15', 'Julia Pereira', 'julia@email.com', 'senha123', '1993-06-25'),
-('88899900011', 'Gerente', '30140071', 'Rua da Bahia', '500', 'Fernanda Costa', 'fernanda@email.com', 'senha123', '1982-09-14'),
-('99900011122', 'Admin', '70040010', 'Setor Bancário Sul', '1', 'Roberto Alves', 'roberto@email.com', 'senha123', '1975-04-18'),
-('00011122233', 'Cliente', '80020000', 'Rua das Flores', '100', 'Mariana Rocha', 'mariana@email.com', 'senha123', '2000-11-30');
+INSERT INTO administrador VALUES
+('11111111111'),
+('22222222222'),
+('33333333333'),
+('44444444444'),
+('55555555555');
 
--- 4. Inserção na tabela CLIENTE
--- CPFs devem existir em Usuario
-INSERT INTO cliente (cpf, pontuacao) VALUES
-('11122233344', 100),
-('22233344455', 2500),
-('66677788899', 50),
-('77788899900', 300),
-('00011122233', 0);
+INSERT INTO infraestrutura VALUES
+('INFRA001', '000000000000001', 'Torre', '01001000', 'Rua A', '100'),
+('INFRA002', '000000000000002', 'Estação', '02002000', 'Rua B', '200'),
+('INFRA003', '000000000000003', 'Base', '03003000', 'Rua C', '300'),
+('INFRA004', '000000000000004', 'Antena', '04004000', 'Rua D', '400'),
+('INFRA005', '000000000000005', 'Hub', '05005000', 'Rua E', '500');
 
--- 5. Inserção na tabela GERENTE
--- CPFs devem existir em Usuario, CNPJs em Provedora
-INSERT INTO gerente (cpf, provedora) VALUES
-('33344455566', '11111111000111'),
-('44455566677', '22222222000122'),
-('88899900011', '33333333000133'),
-('55566677788', '44444444000144'), -- Usando o CPF 555... (que era Admin no cargo, mas aqui atua como gerente para exemplo)
-('99900011122', '55555555000155');
-
--- 6. Inserção na tabela ADMINISTRADOR
-INSERT INTO administrador (cpf) VALUES
-('55566677788'),
-('99900011122'),
-('11122233344'), -- Um usuário pode ter múltiplos papéis dependendo da regra de negócio, aqui assumimos que sim
-('33344455566'),
-('44455566677');
-
--- 7. Inserção na tabela INFRAESTRUTURA
--- Registros mistos que serão especializados em Totens ou Pontos de Retirada
-INSERT INTO infraestrutura (n_registro, provedora, tipo, cep, rua, numero) VALUES
-('INFRA-SP-001', '11111111000111', 'Estação de Recarga', '01001000', 'Praça da Sé', '10'),
-('INFRA-RJ-002', '22222222000122', 'Estação de Recarga', '20040002', 'Rua Rio Branco', '15'),
-('INFRA-MG-003', '33333333000133', 'Estação de Recarga', '30140071', 'Rua da Bahia', '500'),
-('INFRA-DF-004', '44444444000144', 'Estação de Recarga', '70040010', 'Setor Bancário Sul', '1'),
-('INFRA-PR-005', '55555555000155', 'Estação de Recarga', '80020000', 'Rua das Flores', '100'),
-('INFRA-SP-006', '11111111000111', 'Ponto de Retirada', '01001000', 'Praça da Sé', '10'),
-('INFRA-RJ-007', '22222222000122', 'Ponto de Retirada', '20040002', 'Rua Rio Branco', '15'),
-('INFRA-MG-008', '33333333000133', 'Ponto de Retirada', '30140071', 'Rua da Bahia', '500'),
-('INFRA-DF-009', '44444444000144', 'Ponto de Retirada', '70040010', 'Setor Bancário Sul', '1'),
-('INFRA-PR-010', '55555555000155', 'Ponto de Retirada', '80020000', 'Rua das Flores', '100');
-
--- 8. Inserção na tabela TOTENS_DE_RECARGA
--- Herança de Infraestrutura (IDs 001 a 005)
-INSERT INTO totens_de_recarga (n_registro, capacidade, preco, voltagem, conector, potencia, status) VALUES
-('INFRA-SP-001', 2, 1.50, 220, 'Type 2', 22, 'ATIVO'),
-('INFRA-RJ-002', 4, 1.80, 110, 'CCS2', 50, 'ATIVO'),
-('INFRA-MG-003', 1, 1.20, 220, 'CHAdeMO', 50, 'MANUTENCAO'),
-('INFRA-DF-004', 2, 2.00, 220, 'Type 2', 11, 'INATIVO'),
-('INFRA-PR-005', 3, 1.60, 110, 'CCS2', 150, 'ATIVO');
-
--- 9. Inserção na tabela PONTOS_DE_RETIRADA
--- Herança de Infraestrutura (IDs 006 a 010)
-INSERT INTO pontos_de_retirada (n_registro, capacidade, bicicletas_disponiveis, status, voltagem) VALUES
-('INFRA-SP-006', 20, 15, 'ATIVO', 0),
-('INFRA-RJ-007', 15, 5, 'ATIVO', 0),
-('INFRA-MG-008', 10, 0, 'VAZIO', 0),
-('INFRA-DF-009', 25, 25, 'ATIVO', 0),
-('INFRA-PR-010', 12, 0, 'MANUTENCAO', 0);
-
--- 10. Inserção na tabela REPORTE_DE_PROBLEMA
--- Usa gen_random_uuid() implícito para protocolo se o banco suportar, caso contrário inserir string manual.
--- Assumindo suporte a DEFAULT gen_random_uuid() conforme schema.
 INSERT INTO reporte_de_problema (usuario, infraestrutura, titulo, descricao) VALUES
-('11122233344', 'INFRA-SP-001', 'Tela quebrada', 'A tela do totem está trincada e ilegível.'),
-('22233344455', 'INFRA-RJ-002', 'Conector preso', 'Não consegui desconectar o cabo do meu carro.'),
-('33344455566', 'INFRA-MG-008', 'Sem bicicletas', 'O aplicativo dizia que havia bicicletas, mas está vazio.'),
-('66677788899', 'INFRA-DF-004', 'Desligado', 'O totem não dá sinal de vida.'),
-('00011122233', 'INFRA-PR-010', 'Vandalismo', 'Picharam a lateral da estação.');
+('11111111111', 'INFRA001', 'Queda', 'Sem energia'),
+('22222222222', 'INFRA002', 'Falha', 'Oscilações'),
+('33333333333', 'INFRA003', 'Pane', 'Sistema travado'),
+('44444444444', 'INFRA004', 'Ruído', 'Som estranho'),
+('55555555555', 'INFRA005', 'Instabilidade', 'Sinal fraco');
 
--- 11. Inserção na tabela AVALIACAO
 INSERT INTO avaliacao (infraestrutura, cliente, nota, descricao) VALUES
-('INFRA-SP-001', '11122233344', 5, 'Carregamento rápido e barato.'),
-('INFRA-RJ-002', '22233344455', 4, 'Bom, mas a fila estava grande.'),
-('INFRA-MG-003', '66677788899', 1, 'Estava em manutenção e o app não avisou.'),
-('INFRA-DF-004', '77788899900', 3, 'Preço ok, mas potência baixa.'),
-('INFRA-PR-005', '00011122233', 5, 'Excelente localização.');
+('INFRA001', '11111111111', 5, 'Excelente'),
+('INFRA002', '22222222222', 4, 'Bom'),
+('INFRA003', '33333333333', 3, 'Regular'),
+('INFRA004', '44444444444', 2, 'Ruim'),
+('INFRA005', '55555555555', 1, 'Péssimo');
 
--- 12. Inserção na tabela BICICLETA
-INSERT INTO bicicleta (codigo, provedora, modelo, valor, bateria, status, local_origem) VALUES
-('BIKE-001', '11111111000111', 'Mountain Bike Elétrica', 5.50, 100, 'ESTACIONADO', 'INFRA-SP-006'),
-('BIKE-002', '22222222000122', 'City Cruiser', 4.00, 80, 'EM_USO', 'INFRA-RJ-007'),
-('BIKE-003', '33333333000133', 'Speed Lite', 6.00, 15, 'MANUTENCAO', 'INFRA-MG-008'),
-('BIKE-004', '44444444000144', 'Standard', 3.00, 95, 'ESTACIONADO', 'INFRA-DF-009'),
-('BIKE-005', '55555555000155', 'Heavy Duty', 5.00, 0, 'FORA_DE_SERVICO', 'INFRA-PR-010');
+INSERT INTO bicicleta VALUES
+('BIKE001', '000000000000001', 'Modelo A', 1000, 90, 'ativo', 'INFRA001'),
+('BIKE002', '000000000000002', 'Modelo B', 1100, 85, 'ativo', 'INFRA002'),
+('BIKE003', '000000000000003', 'Modelo C', 1200, 80, 'ativo', 'INFRA003'),
+('BIKE004', '000000000000004', 'Modelo D', 1300, 75, 'ativo', 'INFRA004'),
+('BIKE005', '000000000000005', 'Modelo E', 1400, 70, 'ativo', 'INFRA005');
 
--- 13. Inserção na tabela CARRO
-INSERT INTO carro (placa, cliente, capacidade_bateria, autonomia, adaptador, modelo) VALUES
-('ABC-1234', '11122233344', 50, 300, 'Type 2', 'Nissan Leaf'),
-('XYZ-5678', '22233344455', 75, 450, 'CCS2', 'Tesla Model 3'),
-('LMN-9012', '66677788899', 40, 250, 'Type 2', 'Renault Zoe'),
-('DEF-3456', '77788899900', 90, 500, 'CCS2', 'Porsche Taycan'),
-('GHI-7890', '00011122233', 60, 380, 'CHAdeMO', 'BYD Dolphin');
+INSERT INTO carro VALUES
+('AAA1111', '11111111111', 300, 200, 'Tipo1', 'Carro A'),
+('BBB2222', '22222222222', 320, 210, 'Tipo2', 'Carro B'),
+('CCC3333', '33333333333', 340, 220, 'Tipo3', 'Carro C'),
+('DDD4444', '44444444444', 360, 230, 'Tipo4', 'Carro D'),
+('EEE5555', '55555555555', 380, 240, 'Tipo5', 'Carro E');
 
--- 14. Inserção na tabela HORARIO_TOTENS
--- Utilizando o formato de range do PostgreSQL [inicio, fim)
-INSERT INTO horario_totens (totem, horario) VALUES
-('INFRA-SP-001', '[2024-01-01 08:00, 2024-01-01 22:00)'),
-('INFRA-RJ-002', '[2024-01-01 00:00, 2024-01-01 23:59)'),
-('INFRA-MG-003', '[2024-01-01 06:00, 2024-01-01 20:00)'),
-('INFRA-DF-004', '[2024-01-01 09:00, 2024-01-01 18:00)'),
-('INFRA-PR-005', '[2024-01-01 05:00, 2024-01-01 23:00)');
+INSERT INTO totens_de_recarga VALUES
+('TOTEM001', '000000000000001', 50, 10, 220, 'Tipo1', 30, 'ativo'),
+('TOTEM002', '000000000000002', 55, 11, 220, 'Tipo2', 32, 'ativo'),
+('TOTEM003', '000000000000003', 60, 12, 220, 'Tipo3', 34, 'ativo'),
+('TOTEM004', '000000000000004', 65, 13, 220, 'Tipo4', 36, 'ativo'),
+('TOTEM005', '000000000000005', 70, 14, 220, 'Tipo5', 38, 'ativo');
 
--- 15. Inserção na tabela MANUTENCAO_INFRAESTRUTURA
+INSERT INTO horario_totens VALUES
+('TOTEM001', '[2025-01-01 08:00,2025-01-01 12:00)', '000000000000001'),
+('TOTEM002', '[2025-01-02 08:00,2025-01-02 12:00)', '000000000000002'),
+('TOTEM003', '[2025-01-03 08:00,2025-01-03 12:00)', '000000000000003'),
+('TOTEM004', '[2025-01-04 08:00,2025-01-04 12:00)', '000000000000004'),
+('TOTEM005', '[2025-01-05 08:00,2025-01-05 12:00)', '000000000000005');
+
 INSERT INTO manutencao_infraestrutura (horario, status, infraestrutura, gerente) VALUES
-('[2024-02-10 10:00, 2024-02-10 14:00)', 'Concluída', 'INFRA-SP-001', '33344455566'),
-('[2024-02-11 08:00, 2024-02-11 12:00)', 'Agendada', 'INFRA-RJ-002', '44455566677'),
-('[2024-02-12 09:00, 2024-02-12 11:00)', 'Em andamento', 'INFRA-MG-003', '88899900011'),
-('[2024-02-13 13:00, 2024-02-13 17:00)', 'Cancelada', 'INFRA-DF-004', '55566677788'),
-('[2024-02-14 14:00, 2024-02-14 16:00)', 'Concluída', 'INFRA-PR-005', '99900011122');
+('[2025-02-01 10:00,2025-02-01 15:00)', 'Em andamento', 'INFRA001', '22222222222'),
+('[2025-02-02 10:00,2025-02-02 15:00)', 'Concluido', 'INFRA002', '55555555555'),
+('[2025-02-03 10:00,2025-02-03 15:00)', 'Pendente', 'INFRA003', '11111111111'),
+('[2025-02-04 10:00,2025-02-04 15:00)', 'Agendado', 'INFRA004', '33333333333'),
+('[2025-02-05 10:00,2025-02-05 15:00)', 'Finalizado', 'INFRA005', '44444444444');
 
--- 16. Inserção na tabela SESSAO_RECARGA
-INSERT INTO sessao_recarga (totem, horario_inicio, data, carro, kwh_consumidos, valor, emissao_co2) VALUES
-('INFRA-SP-001', '2024-03-01 10:00:00', '2024-03-01', 'ABC-1234', 20.5, 30.75, 0.5),
-('INFRA-RJ-002', '2024-03-02 14:30:00', '2024-03-02', 'XYZ-5678', 40.0, 72.00, 1.2),
-('INFRA-SP-001', '2024-03-03 09:15:00', '2024-03-03', 'LMN-9012', 15.0, 22.50, 0.3),
-('INFRA-PR-005', '2024-03-04 18:00:00', '2024-03-04', 'DEF-3456', 55.5, 88.80, 1.5),
-('INFRA-RJ-002', '2024-03-05 11:45:00', '2024-03-05', 'GHI-7890', 30.0, 54.00, 0.8);
+INSERT INTO sessao_recarga VALUES
+('TOTEM001', '2025-01-10 10:00', '2025-01-10', 'AAA1111', 20.5, 15, 0.123),
+('TOTEM002', '2025-01-11 10:00', '2025-01-11', 'BBB2222', 21.5, 16, 0.133),
+('TOTEM003', '2025-01-12 10:00', '2025-01-12', 'CCC3333', 22.5, 17, 0.143),
+('TOTEM004', '2025-01-13 10:00', '2025-01-13', 'DDD4444', 23.5, 18, 0.153),
+('TOTEM005', '2025-01-14 10:00', '2025-01-14', 'EEE5555', 24.5, 19, 0.163);
 
--- 17. Inserção na tabela RETIRADA_BICICLETA
--- Relaciona Bikes com Pontos de Retirada
-INSERT INTO retirada_bicicleta (bicicleta, ponto_retirada) VALUES
-('BIKE-001', 'INFRA-SP-006'),
-('BIKE-002', 'INFRA-RJ-007'),
-('BIKE-003', 'INFRA-MG-008'),
-('BIKE-004', 'INFRA-DF-009'),
-('BIKE-005', 'INFRA-PR-010');
+INSERT INTO pontos_de_retirada VALUES
+('PONTO001', 10, 'ativo', 220, 5, '000000000000001'),
+('PONTO002', 15, 'ativo', 220, 6, '000000000000002'),
+('PONTO003', 20, 'ativo', 220, 7, '000000000000003'),
+('PONTO004', 25, 'ativo', 220, 8, '000000000000004'),
+('PONTO005', 30, 'ativo', 220, 9, '000000000000005');
+
+INSERT INTO retirada_bicicleta VALUES
+('BIKE001', 'PONTO001'),
+('BIKE002', 'PONTO002'),
+('BIKE003', 'PONTO003'),
+('BIKE004', 'PONTO004'),
+('BIKE005', 'PONTO005');
+
+INSERT INTO aluguel VALUES
+('2025-01-15 09:00', '2025-01-15', 'BIKE001', '11111111111', 'PONTO001', 'PONTO002', '2025-01-15 09:30', 5, 8),
+('2025-01-16 10:00', '2025-01-16', 'BIKE002', '22222222222', 'PONTO002', 'PONTO003', '2025-01-16 10:40', 6, 9),
+('2025-01-17 11:00', '2025-01-17', 'BIKE003', '33333333333', 'PONTO003', 'PONTO004', '2025-01-17 11:50', 7, 10),
+('2025-01-18 12:00', '2025-01-18', 'BIKE004', '44444444444', 'PONTO004', 'PONTO005', '2025-01-18 12:55', 8, 11),
+('2025-01-19 13:00', '2025-01-19', 'BIKE005', '55555555555', 'PONTO005', 'PONTO001', '2025-01-19 13:50', 9, 12);

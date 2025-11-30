@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { NavbarComponent } from '../../components/navbar/navbar';
 import { Header } from '../../components/header/header';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
+import { ToastService } from '../../services/toast-service';
 
 interface Manager {
   cpf: string;
@@ -32,6 +33,8 @@ interface Manager {
   templateUrl: './managers.html',
 })
 export class Managers {
+  private readonly toastService = inject(ToastService);
+
   search = signal('');
   modalOpen = signal(false);
 
@@ -86,18 +89,19 @@ export class Managers {
   }
 
   save() {
-    if (this.form.invalid) return;
+    console.warn('Problem');
+    if (this.form.invalid) {
+      this.toastService.error('Voce deve preencher os campos antes de enviar o formulario!');
+      return;
+    }
 
     console.log('Salvar:', this.form.value);
 
     this.modalOpen.set(false);
+    this.toastService.success('Gerente criado com sucesso!');
   }
 
   updateSearch(value: any) {
     this.search.set(value.target.value);
-  }
-
-  onHideModal() {
-    console.log('Trying');
   }
 }

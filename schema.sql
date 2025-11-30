@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS endereco (
     numero     VARCHAR(10),
     cidade     VARCHAR(100),
     uf         CHAR(2),
-    PRIMARY KEY (cep, rua, numero)
+
+    CONSTRAINT pk_endereco PRIMARY KEY (cep, rua, numero)
 );
 
 CREATE TABLE IF NOT EXISTS usuario (
@@ -17,34 +18,40 @@ CREATE TABLE IF NOT EXISTS usuario (
     email           VARCHAR(150) UNIQUE,
     senha           VARCHAR(200),
     data_nascimento DATE,
-    PRIMARY KEY (cpf),
-    FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero)
+
+    CONSTRAINT pk_usuario PRIMARY KEY (cpf),
+    CONSTRAINT fk_usuario_endereco
+        FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero)
 );
 
 CREATE TABLE IF NOT EXISTS provedora (
     cnpj VARCHAR(16),
-    PRIMARY KEY (cnpj)
+
+    CONSTRAINT pk_provedora PRIMARY KEY (cnpj)
 );
 
 CREATE TABLE IF NOT EXISTS gerente (
     cpf       VARCHAR(11),
     provedora VARCHAR(16),
-    PRIMARY KEY (cpf),
-    FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
-    FOREIGN KEY (cpf) REFERENCES Usuário (cpf)
+
+    CONSTRAINT pk_gerente PRIMARY KEY (cpf),
+    CONSTRAINT fk_gerente_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
+    CONSTRAINT fk_gerente_usuario   FOREIGN KEY (cpf) REFERENCES usuario (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS cliente (
     cpf        VARCHAR(11),
     pontuacao  NUMERIC,
-    PRIMARY KEY (cpf)
-    FOREIGN KEY (cpf) REFERENCES Usuário (cpf)
+
+    CONSTRAINT pk_cliente PRIMARY KEY (cpf),
+    CONSTRAINT fk_cliente_usuario FOREIGN KEY (cpf) REFERENCES usuario (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS administrador (
     cpf VARCHAR(11),
-    PRIMARY KEY (cpf),
-    FOREIGN KEY (cpf) REFERENCES Usuário (cpf)
+
+    CONSTRAINT pk_administrador PRIMARY KEY (cpf),
+    CONSTRAINT fk_admin_usuario FOREIGN KEY (cpf) REFERENCES usuario (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS infraestrutura (
@@ -54,9 +61,10 @@ CREATE TABLE IF NOT EXISTS infraestrutura (
     cep        VARCHAR(8)   NOT NULL,
     rua        VARCHAR(150) NOT NULL,
     numero     VARCHAR(10)  NOT NULL,
-    PRIMARY KEY (n_registro, provedora),
-    FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
-    FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
+
+    CONSTRAINT pk_infraestrutura PRIMARY KEY (n_registro, provedora),
+    CONSTRAINT fk_infra_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj),
+    CONSTRAINT fk_infra_endereco FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
     UNIQUE (cep, rua, numero)
 );
 
@@ -67,9 +75,10 @@ CREATE TABLE IF NOT EXISTS reporte_de_problema (
     data            TIMESTAMP     NOT NULL DEFAULT current_timestamp,
     titulo          VARCHAR(100)  NOT NULL,
     descricao       TEXT,
-    PRIMARY KEY (protocolo),
-    FOREIGN KEY (usuario) REFERENCES usuario (cpf),
-    FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro)
+
+    CONSTRAINT pk_reporte PRIMARY KEY (protocolo),
+    CONSTRAINT fk_reporte_usuario FOREIGN KEY (usuario) REFERENCES usuario (cpf),
+    CONSTRAINT fk_reporte_infra FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS avaliacao (
@@ -78,9 +87,10 @@ CREATE TABLE IF NOT EXISTS avaliacao (
     cliente        VARCHAR(11)   NOT NULL,
     nota           INTEGER,
     descricao      TEXT,
-    PRIMARY KEY (id),
-    FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro),
-    FOREIGN KEY (cliente) REFERENCES cliente (cpf)
+
+    CONSTRAINT pk_avaliacao PRIMARY KEY (id),
+    CONSTRAINT fk_avaliacao_infra FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro),
+    CONSTRAINT fk_avaliacao_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS bicicleta (
@@ -88,11 +98,12 @@ CREATE TABLE IF NOT EXISTS bicicleta (
     provedora     VARCHAR(16),
     modelo        VARCHAR(100),
     valor         NUMERIC(10,2),
-    bateria       INTEGER            NOT NULL,
-    status        STATUS_BICICLETA ,
+    bateria       INTEGER NOT NULL,
+    status        STATUS_BICICLETA,
     local_origem  VARCHAR(26),
-    PRIMARY KEY (codigo),
-    FOREIGN KEY (provedora) REFERENCES provedora (CNPJ)
+
+    CONSTRAINT pk_bicicleta PRIMARY KEY (codigo),
+    CONSTRAINT fk_bicicleta_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
 );
 
 CREATE TABLE IF NOT EXISTS carro (
@@ -102,38 +113,46 @@ CREATE TABLE IF NOT EXISTS carro (
     autonomia            INTEGER,
     adaptador            VARCHAR(50)  NOT NULL,
     modelo               VARCHAR(100),
-    PRIMARY KEY (placa),
-    FOREIGN KEY (cliente) REFERENCES cliente (cpf)
+
+    CONSTRAINT pk_carro PRIMARY KEY (placa),
+    CONSTRAINT fk_carro_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS totens_de_recarga (
     n_registro  VARCHAR(26),
+    provedora   VARCHAR(16) NOT NULL,
     capacidade  INTEGER,
     preco       NUMERIC(10,2),
-    voltagem    INTEGER     NOT NULL,
+    voltagem    INTEGER NOT NULL,
     conector    VARCHAR(50),
     potencia    INTEGER,
     status      STATUS_TOTEM,
-    PRIMARY KEY (n_registro),
-    FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro)
+
+    CONSTRAINT pk_toten PRIMARY KEY (n_registro, provedora),
+    CONSTRAINT fk_toten_infra FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro),
+    CONSTRAINT fk_provedora FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
 );
 
 CREATE TABLE IF NOT EXISTS horario_totens (
     totem   VARCHAR(26),
     horario TSRANGE,
-    PRIMARY KEY (totem, horario),
-    FOREIGN KEY (totem) REFERENCES totens_de_recarga (n_registro)
+    provedora VARCHAR(16) NOT NULL,
+
+    CONSTRAINT pk_horario_totens PRIMARY KEY (totem, horario, provedora),
+    CONSTRAINT fk_horario_toten FOREIGN KEY (totem) REFERENCES totens_de_recarga (n_registro),
+    CONSTRAINT fk_provedora_horario FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
 );
 
 CREATE TABLE IF NOT EXISTS manutencao_infraestrutura (
-    protocolo       UUID        NOT NULL DEFAULT gen_random_uuid(),
+    protocolo       UUID NOT NULL DEFAULT gen_random_uuid(),
     horario         TSRANGE,
     status          VARCHAR(50),
     infraestrutura  VARCHAR(26) NOT NULL,
     gerente         VARCHAR(11) NOT NULL,
-    PRIMARY KEY (protocolo),
-    FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro),
-    FOREIGN KEY (gerente) REFERENCES gerente (cpf)
+
+    CONSTRAINT pk_manutencao PRIMARY KEY (protocolo),
+    CONSTRAINT fk_manutencao_infra FOREIGN KEY (infraestrutura) REFERENCES infraestrutura (n_registro),
+    CONSTRAINT fk_manutencao_gerente FOREIGN KEY (gerente) REFERENCES gerente (cpf)
 );
 
 CREATE TABLE IF NOT EXISTS sessao_recarga (
@@ -144,27 +163,32 @@ CREATE TABLE IF NOT EXISTS sessao_recarga (
     kwh_consumidos  NUMERIC(10,2),
     valor           NUMERIC(10,2),
     emissao_co2     NUMERIC(10,3),
-    PRIMARY KEY (totem, horario_inicio, data, carro),
-    FOREIGN KEY (carro) REFERENCES carro (placa),
-    FOREIGN KEY (totem) REFERENCES totens_de_recarga (n_registro)
+
+    CONSTRAINT pk_sessao_recarga PRIMARY KEY (totem, horario_inicio, data, carro),
+    CONSTRAINT fk_sessao_carro FOREIGN KEY (carro) REFERENCES carro (placa),
+    CONSTRAINT fk_sessao_toten FOREIGN KEY (totem) REFERENCES totens_de_recarga (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS pontos_de_retirada (
     n_registro VARCHAR(26),
     capacidade INTEGER,
     status     STATUS_PONTO,
-    voltagem   INTEGER       NOT NULL,
-    bicicletas_disponiveis  INTEGER       NOT NULL,
-    PRIMARY KEY (n_registro),
-    FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro)
+    voltagem   INTEGER NOT NULL,
+    bicicletas_disponiveis INTEGER NOT NULL,
+    provedora  VARCHAR(16) NOT NULL,
+
+    CONSTRAINT pk_ponto_retirada PRIMARY KEY (n_registro, provedora),
+    CONSTRAINT fk_provedora_retirada FOREIGN KEY (provedora) REFERENCES provedora (cnpj)
+    CONSTRAINT fk_pontos_infra FOREIGN KEY (n_registro) REFERENCES infraestrutura (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS retirada_bicicleta (
     bicicleta      VARCHAR(26),
     ponto_retirada VARCHAR(26),
-    PRIMARY KEY (bicicleta, ponto_retirada),
-    FOREIGN KEY (bicicleta) REFERENCES bicicleta (codigo),
-    FOREIGN KEY (ponto_retirada) REFERENCES pontos_de_retirada (n_registro)
+
+    CONSTRAINT pk_retirada_bicicleta PRIMARY KEY (bicicleta, ponto_retirada),
+    CONSTRAINT fk_retirada_bicicleta_bike FOREIGN KEY (bicicleta) REFERENCES bicicleta (codigo),
+    CONSTRAINT fk_retirada_ponto FOREIGN KEY (ponto_retirada) REFERENCES pontos_de_retirada (n_registro)
 );
 
 CREATE TABLE IF NOT EXISTS aluguel (
@@ -177,7 +201,8 @@ CREATE TABLE IF NOT EXISTS aluguel (
     horario_devolucao  TIMESTAMP,
     distancia          NUMERIC(10,2),
     valor              NUMERIC(10,2),
-    PRIMARY KEY (horario_inicio, data, bicicleta, cliente),
-    FOREIGN KEY (bicicleta) REFERENCES bicicleta (codigo),
-    FOREIGN KEY (cliente) REFERENCES cliente (cpf)
+
+    CONSTRAINT pk_aluguel PRIMARY KEY (horario_inicio, data, bicicleta, cliente),
+    CONSTRAINT fk_aluguel_bicicleta FOREIGN KEY (bicicleta) REFERENCES bicicleta (codigo),
+    CONSTRAINT fk_aluguel_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf)
 );

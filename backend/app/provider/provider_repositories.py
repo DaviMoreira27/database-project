@@ -1,7 +1,8 @@
 import logging
 
 import asyncpg
-from app.database.database_service import DatabaseService, InternalDatabaseError
+from app.database.database_service import DatabaseService
+from app.provider.provider_error import ProviderQueryError
 from app.provider.provider_types import ProviderTableResponse
 
 logger = logging.getLogger(__name__)
@@ -29,10 +30,10 @@ class ProviderRepositories:
 
             return ProviderTableResponse(**dict(row))
 
-        except (asyncpg.exceptions.UndefinedColumnError, AttributeError):
-            logger.fatal("Coluna errada ou faltante na tabela provedora.")
-            raise InternalDatabaseError
+        except asyncpg.UndefinedColumnError as e:
+            logger.error(f"Coluna inválida na tabela provedora: {e}")
+            raise ProviderQueryError("Erro no schema da tabela provedora") from e
 
-        except Exception:
-            logger.exception("Erro ao buscar provedora.")
-            raise InternalDatabaseError
+        except asyncpg.PostgresError as e:
+            logger.error(f"Erro SQL ao buscar provedora: {e}")
+            raise ProviderQueryError("Falha ao consultar provedora") from e

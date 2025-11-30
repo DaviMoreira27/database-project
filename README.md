@@ -62,6 +62,7 @@ podman exec -it postgres-db psql -U testuser -d db-project
 Note that this command will start a temporary container to run the database, after every restart the data will be lost. To persist between restarts, use this:
 
 ```bash
+podman volume rm -f pgdata
 podman volume create pgdata
 podman run --replace -d \
   --name postgres-db \
@@ -84,6 +85,7 @@ podman exec -it postgres-db psql -U testuser -d db-project
 To create the schema and insert the data, you can run:
 ```bash
 podman exec -i postgres-db psql -U testuser -d db-project < schema.sql
+podman exec -i postgres-db psql -U testuser -d db-project < data-creation.sql
 ```
 
 ## Create the .env

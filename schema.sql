@@ -17,6 +17,13 @@
         'ATIVO'
     );
 
+    CREATE TYPE STATUS_MANUTENCAO AS ENUM (
+        'ANDAMENTO',
+        'CONCLUIDO',
+        'AGENDADO',
+        'PENDENTE'
+    );
+
     CREATE TABLE IF NOT EXISTS endereco (
         cep        VARCHAR(8),
         rua        VARCHAR(150),
@@ -170,7 +177,7 @@
     CREATE TABLE IF NOT EXISTS manutencao_infraestrutura (
         protocolo       UUID NOT NULL DEFAULT gen_random_uuid(),
         horario         TSRANGE,
-        status          VARCHAR(50),
+        status          STATUS_MANUTENCAO,
         infraestrutura  VARCHAR(26) NOT NULL,
         provedora VARCHAR(16) NOT NULL,
         gerente         VARCHAR(11) NOT NULL,

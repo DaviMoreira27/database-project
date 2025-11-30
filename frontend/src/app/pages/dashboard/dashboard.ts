@@ -261,6 +261,7 @@ export class Dashboard implements OnInit {
         this.toastService.error('Falha ao carregar dados do dashboard');
         console.error(err);
         this.loading.set(false);
+        this.router.navigate(['/login'], { replaceUrl: true });
       },
     });
   }

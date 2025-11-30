@@ -12,8 +12,8 @@ async def login_user(body: LoginBody):
     return await user_service.login(body)
 
 @router.get("/listar/{cargo}")
-async def listar_usuarios(cargo: LoginTypes):
-    return await user_service.list_users(cargo)
+async def listar_usuarios(cargo: LoginTypes, cnpj: str | None = None):
+    return await user_service.list_users(cargo, cnpj)
 
 
 @router.post("/criar")

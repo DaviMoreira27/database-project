@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:8000/api/listar/:cargo
+  url: http://localhost:8000/api/listar/:cargo?cnpj=000000000000002
   body: none
   auth: inherit
+}
+
+params:query {
+  cnpj: 000000000000002
 }
 
 params:path {

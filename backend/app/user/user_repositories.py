@@ -57,13 +57,29 @@ class UserRepositories:
             raise InternalDatabaseError
 
 
-    async def list_users_by_type(self, cargo: str):
+    async def list_users_by_type(self, cargo: str, cnpj: str | None):
         try:
             conn = await self.database_service.db_connection()
-            rows = await conn.fetch(
-                "SELECT * FROM usuario WHERE cargo = $1;",
-                cargo
-            )
+            if cnpj and cargo.upper() == "GERENTE":
+                rows = await conn.fetch(
+                    """
+                    SELECT u.*
+                    FROM usuario u
+                    JOIN gerente g ON g.cpf = u.cpf
+                    WHERE u.cargo = $1
+                        AND g.provedora = $2;
+                    """,
+                    cargo,
+                    cnpj
+                )
+
+            elif cnpj:
+                rows = [] # Apenas o gerente ta associado por cnpj, se ele selecionou outro cargo nao tem pq voltar algo
+            else:
+                rows = await conn.fetch(
+                    "SELECT * FROM usuario WHERE cargo = $1;",
+                    cargo
+                )
 
             result = []
             for r in rows:

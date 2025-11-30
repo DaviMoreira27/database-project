@@ -45,9 +45,9 @@ class UserService:
         except HTTPException:
             raise
 
-    async def list_users(self, cargo: LoginTypes):
+    async def list_users(self, cargo: LoginTypes, cnpj: str | None):
         try:
-            return await self._user_repositories.list_users_by_type(cargo.value)
+            return await self._user_repositories.list_users_by_type(cargo.value, cnpj)
         except InternalDatabaseError:
             raise HTTPException(
                 status_code=500,

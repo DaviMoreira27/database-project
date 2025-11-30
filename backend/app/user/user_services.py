@@ -4,6 +4,7 @@ import bcrypt
 from fastapi import HTTPException
 
 from app.database.database_error import InternalDatabaseError
+from app.provider.provider_services import ProviderService
 from app.user.user_repositories import UserRepositories
 from app.user.user_types import CreateUserBody, LoginBody, LoginTypes
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 class UserService:
     def __init__(self):
         self._user_repositories = UserRepositories()
+        self._provider_service = ProviderService()
 
     async def login(self, data: LoginBody):
         try:
@@ -63,11 +65,28 @@ class UserService:
             payload.senha = hashed
             cargo = payload.cargo.upper()
 
+            check_user = await self._user_repositories.get_user(payload.email, payload.cargo)
+
+            if (check_user is not None):
+                raise HTTPException(
+                    status_code=400,
+                    detail="O email digitado ja existe na base de dados."
+                )
+
             if cargo == "GERENTE" and payload.provedora is None:
                 raise HTTPException(
                     status_code=400,
                     detail="Gerente precisa de uma provedora."
                 )
+
+            if payload.provedora:
+                provedora = await self._provider_service.find_provider(payload.provedora)
+
+                if (provedora is None):
+                    raise HTTPException(
+                        status_code=404,
+                        detail="Provedora selecionada nao existe."
+                    )
 
             await self._user_repositories.insert_user(
                 payload,

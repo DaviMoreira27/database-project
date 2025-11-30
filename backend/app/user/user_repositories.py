@@ -20,7 +20,7 @@ class UserRepositories:
     def database_service(self):
         return self._database_service
 
-    async def get_user(self, email: str, cargo: str):
+    async def get_user(self, email: str, cargo: str | None):
         try:
             dbConn = await self.database_service.db_connection()
 

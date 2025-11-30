@@ -145,6 +145,8 @@
         CONSTRAINT pk_carro PRIMARY KEY (placa),
         CONSTRAINT fk_carro_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf),
         CONSTRAINT fk_ck_capacidade_bateria CHECK(capacidade_bateria > 0)
+        CONSTRAINT fk_ck_autonomia CHECK(autonomia > 0)
+
     );
 
     CREATE TABLE IF NOT EXISTS totens_de_recarga (

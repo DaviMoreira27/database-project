@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from app.database.database_error import InternalDatabaseError
 from app.provider.provider_services import ProviderService
-from app.user.user_repositories import UserRepositories
+from app.user.user_repositories import UserInsertError, UserQueryError, UserRepositories
 from app.user.user_types import CreateUserBody, LoginBody, LoginTypes
 
 logger = logging.getLogger(__name__)
@@ -20,9 +20,9 @@ class UserService:
         try:
             email = data.email
             password = data.password.encode("utf-8")
-            login_type = data.login_type
+            cargo = data.login_type.value
 
-            user = await self._user_repositories.get_user(email, login_type.value)
+            user = await self._user_repositories.get_user(email, cargo)
 
             if user is None:
                 raise HTTPException(status_code=401, detail="Email ou senha errados")
@@ -30,16 +30,18 @@ class UserService:
             if not bcrypt.checkpw(password, user.senha.encode("utf-8")):
                 raise HTTPException(status_code=401, detail="Email ou senha errados")
 
+            user_data = {k: v for (k, v) in dict(user).items() if k != "senha"}
+
             return {
                 "message": "Login efetuado com sucesso",
-                "user": {k: v for (k, v) in dict(user).items() if k != "senha"},
-                "error": None,
+                "user": user_data,
             }
 
         except InternalDatabaseError:
+            logger.error("Erro de banco ao fazer login")
             raise HTTPException(
                 status_code=500,
-                detail="Erro interno, por favor tente novamente mais tarde",
+                detail="Erro interno. Tente novamente mais tarde."
             )
 
         except HTTPException:
@@ -47,11 +49,15 @@ class UserService:
 
     async def list_users(self, cargo: LoginTypes, cnpj: str | None):
         try:
-            return await self._user_repositories.list_users_by_type(cargo.value, cnpj)
-        except InternalDatabaseError:
+            return await self._user_repositories.list_users_by_type(
+                cargo.value, cnpj
+            )
+
+        except (InternalDatabaseError, UserQueryError):
+            logger.error("Erro ao listar usuários")
             raise HTTPException(
                 status_code=500,
-                detail="Erro interno ao listar usuários"
+                detail="Erro interno ao listar usuários."
             )
 
     async def create_user(self, data: CreateUserBody):
@@ -63,17 +69,17 @@ class UserService:
 
             payload = data.model_copy()
             payload.senha = hashed
-            cargo = payload.cargo.upper()
 
-            check_user = await self._user_repositories.get_user(payload.email, payload.cargo)
+            cargo_upper = payload.cargo.upper()
 
-            if (check_user is not None):
+            existing = await self._user_repositories.get_user(payload.email, payload.cargo)
+            if existing is not None:
                 raise HTTPException(
                     status_code=400,
-                    detail="O email digitado ja existe na base de dados."
+                    detail="O email digitado já existe na base de dados."
                 )
 
-            if cargo == "GERENTE" and payload.provedora is None:
+            if cargo_upper == "GERENTE" and payload.provedora is None:
                 raise HTTPException(
                     status_code=400,
                     detail="Gerente precisa de uma provedora."
@@ -81,25 +87,24 @@ class UserService:
 
             if payload.provedora:
                 provedora = await self._provider_service.find_provider(payload.provedora)
-
-                if (provedora is None):
+                if provedora is None:
                     raise HTTPException(
                         status_code=404,
-                        detail="Provedora selecionada nao existe."
+                        detail="Provedora selecionada não existe."
                     )
 
-            await self._user_repositories.insert_user(
-                payload,
-                provedora=payload.provedora
-            )
+            await self._user_repositories.insert_user(payload, payload.provedora)
 
             return {
-                "message": "Usuário criado com sucesso",
-                "error": None
+                "message": "Usuário criado com sucesso"
             }
 
-        except InternalDatabaseError:
+        except (InternalDatabaseError, UserInsertError):
+            logger.error("Erro ao inserir usuário")
             raise HTTPException(
                 status_code=500,
                 detail="Erro interno ao criar usuário."
             )
+
+        except HTTPException:
+            raise

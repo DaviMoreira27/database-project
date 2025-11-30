@@ -3,7 +3,10 @@ import logging
 import asyncpg
 
 from app.database.database_service import DatabaseService, InternalDatabaseError
-from app.user.user_types import UserTableResponse
+from app.user.user_types import (
+    UserTableResponse,
+    UserWithProviderResponse,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,23 +20,42 @@ class UserRepositories:
     def database_service(self):
         return self._database_service
 
-    async def get_user(self, email: str, type: str):
+    async def get_user(self, email: str, cargo: str):
         try:
             dbConn = await self.database_service.db_connection()
+
             user = await dbConn.fetchrow(
-                "SELECT * FROM Usuario WHERE email = $1 AND cargo = $2;", email, type
+                "SELECT * FROM usuario WHERE email = $1 AND cargo = $2;",
+                email,
+                cargo
             )
 
             if user is None:
                 return None
 
-            logger.info("User: %s", {k: v for k, v in user.items() if k != "senha"})
-            data = dict(user)
-            record = UserTableResponse(**data)
-            return record
+            user_dict = dict(user)
+            base_user = UserTableResponse(**user_dict)
+
+            provedora = None
+
+            if base_user.cargo == "GERENTE":
+                gerente_data = await dbConn.fetchrow(
+                    "SELECT * FROM gerente WHERE cpf = $1;",
+                    base_user.cpf
+                )
+
+                if gerente_data:
+                    provedora = gerente_data["provedora"]
+
+            return UserWithProviderResponse(
+                **dict(base_user),
+                provedora=provedora
+            )
+
         except (asyncpg.exceptions.UndefinedColumnError, AttributeError):
             logger.fatal("Coluna errada ou faltante na tabela")
             raise InternalDatabaseError
+
 
     async def list_users_by_type(self, cargo: str):
         try:

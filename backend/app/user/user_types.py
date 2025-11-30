@@ -26,6 +26,19 @@ class UserTableResponse(BaseModel):
     senha: str
     data_nascimento: date
 
+class ManagerTableResponse(BaseModel):
+    cpf: str
+    provedora: str
+
+class UserWithProviderResponse(BaseModel):
+    cpf: str
+    cargo: str
+    nome: str
+    email: str
+    senha: str
+    data_nascimento: date
+    provedora: str | None = None
+
 
 class CreateUserBody(BaseModel):
     cpf: str

@@ -12,11 +12,11 @@ INSERT INTO endereco VALUES
 -- USUARIO
 ------------------------------------------------------------
 INSERT INTO usuario VALUES
-('11111111111', 'CLIENTE',       '01001000', 'Rua A', '100', 'Lucas', 'lucas1@email.com', 'senha1', '2000-01-01'),
-('22222222222', 'GERENTE',       '02002000', 'Rua B', '200', 'Maria', 'maria2@email.com', 'senha2', '1995-02-02'),
-('33333333333', 'ADMINISTRADOR', '03003000', 'Rua C', '300', 'João',  'joao3@email.com', 'senha3', '1990-03-03'),
-('44444444444', 'CLIENTE',       '04004000', 'Rua D', '400', 'Ana',   'ana4@email.com', 'senha4', '1998-04-04'),
-('55555555555', 'GERENTE',       '05005000', 'Rua E', '500', 'Pedro', 'pedro5@email.com', 'senha5', '1985-05-05');
+('11111111111', 'CLIENTE',       '01001000', 'Rua A', '100', 'Lucas', 'lucas1@email.com', '$2a$10$LdpOeh7KGB4Vfv/SbO6LNuB10PL7Dtsl7iRmM7zh0NJqgyuLXpWQ6', '2000-01-01'), -- SENHA: senha1
+('22222222222', 'GERENTE',       '02002000', 'Rua B', '200', 'Maria', 'maria2@email.com', '$2a$10$rWpOEfsgvy2jjNivyACO7OKv5ANBE2iPfVF0cfaV7U6gN1zuU3ptC', '1995-02-02'), -- SENHA: senha2
+('33333333333', 'ADMINISTRADOR', '03003000', 'Rua C', '300', 'João',  'joao3@email.com', '$2a$10$tO8NXRDlx3oIkTq6UzXRi.EhkPt9cNwH.2yTwaD05nA4Nq4LtAZwm', '1990-03-03'), -- SENHA: senha3
+('44444444444', 'CLIENTE',       '04004000', 'Rua D', '400', 'Ana',   'ana4@email.com', '$2a$10$J0ypmwpExhkf53dR5in4iuYeeqXymAKAORLtjFx2X1Er9RmDuCx8i', '1998-04-04'), -- SENHA: senha4
+('55555555555', 'GERENTE',       '05005000', 'Rua E', '500', 'Pedro', 'pedro5@email.com', '$2a$10$RePv8WgHwurrCWYUEpJ0LOQlxLtcCCbSUf486H5Om1FaTOk2gc.cC', '1985-05-05'); -- SENHA: senha5
 
 ------------------------------------------------------------
 -- PROVEDORA

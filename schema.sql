@@ -46,6 +46,7 @@
         data_nascimento DATE,
 
         CONSTRAINT pk_usuario PRIMARY KEY (cpf),
+        CONSTRAINT unique_email UNIQUE (email),
         CONSTRAINT fk_usuario_endereco
             FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
         CONSTRAINT chk_usuario_cargo CHECK (UPPER(cargo) IN ('GERENTE', 'CLIENTE', 'ADMINISTRADOR'))
@@ -144,7 +145,7 @@
 
         CONSTRAINT pk_carro PRIMARY KEY (placa),
         CONSTRAINT fk_carro_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf),
-        CONSTRAINT fk_ck_capacidade_bateria CHECK(capacidade_bateria > 0)
+        CONSTRAINT fk_ck_capacidade_bateria CHECK(capacidade_bateria > 0),
         CONSTRAINT fk_ck_autonomia CHECK(autonomia > 0)
 
     );
@@ -221,8 +222,9 @@
         bicicleta      VARCHAR(26) NOT NULL,
         ponto_retirada VARCHAR(26) NOT NULL,
         provedora      VARCHAR(16) NOT NULL,
+        data           TIMESTAMP   NOT NULL,
 
-        CONSTRAINT pk_retirada_bicicleta PRIMARY KEY (bicicleta, ponto_retirada),
+        CONSTRAINT pk_retirada_bicicleta PRIMARY KEY (bicicleta, ponto_retirada, data),
         CONSTRAINT fk_retirada_bicicleta_bike FOREIGN KEY (bicicleta) REFERENCES bicicleta (codigo),
         CONSTRAINT fk_retirada_ponto FOREIGN KEY (ponto_retirada, provedora) REFERENCES pontos_de_retirada (n_registro, provedora)
     );

@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17
+    container_name: db_project
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: db-project
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./data-creation.sql:/docker-entrypoint-initdb.d/02-data.sql
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: backend_project
+    depends_on:
+      - db
+    environment:
+      DB_STRING: "postgresql://testuser:123456789@db/db-project"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_project
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  db_data:

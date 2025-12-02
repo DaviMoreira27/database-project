@@ -40,8 +40,7 @@ class UserService:
         except InternalDatabaseError:
             logger.error("Erro de banco ao fazer login")
             raise HTTPException(
-                status_code=500,
-                detail="Erro interno. Tente novamente mais tarde."
+                status_code=500, detail="Erro interno. Tente novamente mais tarde."
             )
 
         except HTTPException:
@@ -49,62 +48,59 @@ class UserService:
 
     async def list_users(self, cargo: LoginTypes, cnpj: str | None):
         try:
-            return await self._user_repositories.list_users_by_type(
-                cargo.value, cnpj
-            )
+            return await self._user_repositories.list_users_by_type(cargo.value, cnpj)
 
         except (InternalDatabaseError, UserQueryError):
             logger.error("Erro ao listar usuários")
             raise HTTPException(
-                status_code=500,
-                detail="Erro interno ao listar usuários."
+                status_code=500, detail="Erro interno ao listar usuários."
             )
 
     async def create_user(self, data: CreateUserBody):
         try:
-            hashed = bcrypt.hashpw(
-                data.senha.encode("utf-8"),
-                bcrypt.gensalt()
-            ).decode("utf-8")
+            hashed = bcrypt.hashpw(data.senha.encode("utf-8"), bcrypt.gensalt()).decode(
+                "utf-8"
+            )
 
             payload = data.model_copy()
             payload.senha = hashed
 
             cargo_upper = payload.cargo.upper()
 
-            existing = await self._user_repositories.get_user(payload.email, payload.cargo)
+            existing = await self._user_repositories.get_user(
+                payload.email, payload.cargo
+            )
             if existing is not None:
                 raise HTTPException(
                     status_code=400,
-                    detail="O email digitado já existe na base de dados."
+                    detail="O email digitado já existe na base de dados.",
                 )
 
             if cargo_upper == "GERENTE" and payload.provedora is None:
                 raise HTTPException(
-                    status_code=400,
-                    detail="Gerente precisa de uma provedora."
+                    status_code=400, detail="Gerente precisa de uma provedora."
                 )
 
             if payload.provedora:
-                provedora = await self._provider_service.find_provider(payload.provedora)
+                provedora = await self._provider_service.find_provider(
+                    payload.provedora
+                )
                 if provedora is None:
                     raise HTTPException(
-                        status_code=404,
-                        detail="Provedora selecionada não existe."
+                        status_code=404, detail="Provedora selecionada não existe."
                     )
 
             await self._user_repositories.insert_user(payload, payload.provedora)
 
-            return {
-                "message": "Usuário criado com sucesso"
-            }
+            return {"message": "Usuário criado com sucesso"}
 
-        except (InternalDatabaseError, UserInsertError):
+        except InternalDatabaseError:
             logger.error("Erro ao inserir usuário")
             raise HTTPException(
-                status_code=500,
-                detail="Erro interno ao criar usuário."
+                status_code=500, detail="Erro interno ao criar usuário."
             )
+        except UserInsertError as e:
+            raise HTTPException(status_code=400, detail=e.args[0])
 
         except HTTPException:
             raise

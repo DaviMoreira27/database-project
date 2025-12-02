@@ -29,9 +29,7 @@ class UserRepositories:
             dbConn = await self.database_service.db_connection()
 
             user = await dbConn.fetchrow(
-                "SELECT * FROM usuario WHERE email = $1 AND cargo = $2;",
-                email,
-                cargo
+                "SELECT * FROM usuario WHERE email = $1 AND cargo = $2;", email, cargo
             )
 
             if user is None:
@@ -44,17 +42,13 @@ class UserRepositories:
 
             if base_user.cargo == "GERENTE":
                 gerente_data = await dbConn.fetchrow(
-                    "SELECT * FROM gerente WHERE cpf = $1;",
-                    base_user.cpf
+                    "SELECT * FROM gerente WHERE cpf = $1;", base_user.cpf
                 )
 
                 if gerente_data:
                     provedora = gerente_data["provedora"]
 
-            return UserWithProviderResponse(
-                **dict(base_user),
-                provedora=provedora
-            )
+            return UserWithProviderResponse(**dict(base_user), provedora=provedora)
 
         except asyncpg.UndefinedColumnError as e:
             logger.error(f"Coluna inválida na consulta get_user: {e}")
@@ -64,8 +58,9 @@ class UserRepositories:
             logger.error(f"Erro SQL em get_user: {e}")
             raise UserQueryError("Falha ao buscar usuário") from e
         except Exception as e:
-            raise InternalDatabaseError("Um erro inesperado ocorreu ao buscar o usuario") from e
-
+            raise InternalDatabaseError(
+                "Um erro inesperado ocorreu ao buscar o usuario"
+            ) from e
 
     async def list_users_by_type(self, cargo: str, cnpj: str | None):
         try:
@@ -92,8 +87,7 @@ class UserRepositories:
 
             else:
                 rows = await conn.fetch(
-                    "SELECT * FROM usuario WHERE cargo = $1;",
-                    cargo_upper
+                    "SELECT * FROM usuario WHERE cargo = $1;", cargo_upper
                 )
 
             result = []
@@ -108,21 +102,26 @@ class UserRepositories:
             logger.error(f"Erro SQL ao listar usuários por tipo: {e}")
             raise UserQueryError("Falha ao consultar usuários") from e
         except Exception as e:
-            raise InternalDatabaseError("Um erro inesperado ocorreu ao listar usuarios") from e
+            raise InternalDatabaseError(
+                "Um erro inesperado ocorreu ao listar usuarios"
+            ) from e
 
     async def insert_user(self, data, provedora: str | None = None):
         try:
             conn = await self.database_service.db_connection()
 
             async with conn.transaction():
-
                 await conn.execute(
                     """
                     INSERT INTO endereco (cep, rua, numero, cidade, uf)
                     VALUES ($1, $2, $3, $4, $5)
                     ON CONFLICT (cep, rua, numero) DO NOTHING;
                     """,
-                    data.cep, data.rua, data.numero, data.cidade, data.uf
+                    data.cep,
+                    data.rua,
+                    data.numero,
+                    data.cidade,
+                    data.uf,
                 )
 
                 await conn.execute(
@@ -139,7 +138,7 @@ class UserRepositories:
                     data.nome,
                     data.email,
                     data.senha,
-                    data.data_nascimento
+                    data.data_nascimento,
                 )
 
                 cargo = data.cargo.upper()
@@ -150,19 +149,17 @@ class UserRepositories:
                     await conn.execute(
                         "INSERT INTO gerente (cpf, provedora) VALUES ($1, $2);",
                         data.cpf,
-                        provedora
+                        provedora,
                     )
 
                 elif cargo == "CLIENTE":
                     await conn.execute(
-                        "INSERT INTO cliente (cpf, pontuacao) VALUES ($1, 0);",
-                        data.cpf
+                        "INSERT INTO cliente (cpf, pontuacao) VALUES ($1, 0);", data.cpf
                     )
 
                 elif cargo == "ADMINISTRADOR":
                     await conn.execute(
-                        "INSERT INTO administrador (cpf) VALUES ($1);",
-                        data.cpf
+                        "INSERT INTO administrador (cpf) VALUES ($1);", data.cpf
                     )
 
                 else:
@@ -172,7 +169,14 @@ class UserRepositories:
 
         except asyncpg.UniqueViolationError as e:
             logger.warning(f"CPF, email ou endereco já cadastrado: {e}")
-            raise UserInsertError("O CPF, email ou endereco informado já estao associados a outro usuario") from e
+            raise UserInsertError(
+                "O CPF, email ou endereco informado já estao associados a outro usuario"
+            ) from e
+
+        except asyncpg.DataError as e:
+            if "value too long for type character varying" in str(e):
+                raise UserInsertError("Algum campo excede o tamanho permitido") from e
+            raise UserInsertError("Erro de dados inválidos no banco") from e
 
         except asyncpg.ForeignKeyViolationError as e:
             logger.error(f"Violação de FK em insert_user: {e}")
@@ -182,4 +186,6 @@ class UserRepositories:
             logger.error(f"Erro SQL inesperado em insert_user: {e}")
             raise UserInsertError("Erro ao inserir usuário") from e
         except Exception as e:
-            raise InternalDatabaseError("Um erro inesperado ocorreu ao inserir o usuario") from e
+            raise InternalDatabaseError(
+                "Um erro inesperado ocorreu ao inserir o usuario"
+            ) from e

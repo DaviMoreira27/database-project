@@ -61,6 +61,12 @@ export class Dashboard implements OnInit {
   protected receitaData!: ChartData<'line'>;
   protected sessoesData!: ChartData<'line'>;
 
+  protected bicicletasEstacionadasDataBrute: BicicletasEstacionadas[] = [];
+  protected problemasPorAvaliacaoDataBrute: ProblemasPorAvaliacao[] = [];
+  protected taxaOcupacaoDataBrute: TaxaOcupacao[] = [];
+  protected receitaMensalDataBrute: ReceitaMensal[] = [];
+  protected totalSessoesDataBrute: SessoesPorDia[] = [];
+
   protected readonly compactOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -121,86 +127,81 @@ export class Dashboard implements OnInit {
       bicicletasEstacionadas: bicicletasEstacionadas$,
     }).subscribe({
       next: (data) => {
-        // Conversões numéricas
-        data.sessoesPorDia = data.sessoesPorDia.map((d) => ({
+        this.totalSessoesDataBrute = data.sessoesPorDia.map((d) => ({
           ...d,
           total_sessoes: Number(d.total_sessoes),
         }));
 
-        data.receitaMensal = data.receitaMensal.map((d) => ({
+        this.receitaMensalDataBrute = data.receitaMensal.map((d) => ({
           ...d,
           receita: Number(d.receita),
         }));
 
-        data.taxaOcupacao = data.taxaOcupacao.map((d) => ({
+        this.taxaOcupacaoDataBrute = data.taxaOcupacao.map((d) => ({
           ...d,
           capacidade: Number(d.capacidade),
           bicicletas_disponiveis: Number(d.bicicletas_disponiveis),
           taxa_ocupacao: Number(d.taxa_ocupacao),
         }));
 
-        data.problemasPorAvaliacao = data.problemasPorAvaliacao.map((d) => ({
+        this.problemasPorAvaliacaoDataBrute = data.problemasPorAvaliacao.map((d) => ({
           ...d,
           problemas: Number(d.problemas),
           avaliacoes: Number(d.avaliacoes),
           razao_problema_por_avaliacao: Number(d.razao_problema_por_avaliacao),
         }));
 
-        data.bicicletasEstacionadas = data.bicicletasEstacionadas.map((d) => ({
+        this.bicicletasEstacionadasDataBrute = data.bicicletasEstacionadas.map((d) => ({
           ...d,
           total_estacionadas: Number(d.total_estacionadas),
           estacionadas_no_ponto: Number(d.estacionadas_no_ponto),
           percentual_relacional: Number(d.percentual_relacional),
         }));
 
-        // Bicicletas Estacionadas
         this.estacionamentoData = {
-          labels: data.bicicletasEstacionadas.map((d) => d.ponto_retirada),
+          labels: this.bicicletasEstacionadasDataBrute.map((d) => d.ponto_retirada),
           datasets: [
             {
               label: 'Estacionadas no ponto',
-              data: data.bicicletasEstacionadas.map((d) => d.estacionadas_no_ponto),
+              data: this.bicicletasEstacionadasDataBrute.map((d) => d.estacionadas_no_ponto),
               backgroundColor: '#42A5F5',
             },
             {
               label: 'Total estacionadas',
-              data: data.bicicletasEstacionadas.map((d) => d.total_estacionadas),
+              data: this.bicicletasEstacionadasDataBrute.map((d) => d.total_estacionadas),
               backgroundColor: '#9CCC65',
             },
           ],
         };
 
-        // Problemas por avaliação
         this.problemasData = {
-          labels: data.problemasPorAvaliacao.map((d) => d.n_registro),
+          labels: this.problemasPorAvaliacaoDataBrute.map((d) => d.n_registro),
           datasets: [
             {
               label: 'Problemas',
-              data: data.problemasPorAvaliacao.map((d) => d.problemas),
+              data: this.problemasPorAvaliacaoDataBrute.map((d) => d.problemas),
               backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8E44AD'],
             },
           ],
         };
 
-        // Bicicletas por ponto
         this.bicicletasData = {
-          labels: data.taxaOcupacao.map((d) => d.n_registro),
+          labels: this.taxaOcupacaoDataBrute.map((d) => d.n_registro),
           datasets: [
             {
               label: 'Capacidade',
-              data: data.taxaOcupacao.map((d) => d.capacidade),
+              data: this.taxaOcupacaoDataBrute.map((d) => d.capacidade),
               backgroundColor: '#FFA726',
             },
             {
               label: 'Bicicletas disponíveis',
-              data: data.taxaOcupacao.map((d) => d.bicicletas_disponiveis),
+              data: this.taxaOcupacaoDataBrute.map((d) => d.bicicletas_disponiveis),
               backgroundColor: '#66BB6A',
             },
           ],
         };
 
-        // Receita mensal
-        const labelsReceita = data.receitaMensal.map((d) => {
+        const labelsReceita = this.receitaMensalDataBrute.map((d) => {
           const date = new Date(d.mes);
           const label = new Intl.DateTimeFormat('pt-BR', {
             month: 'long',
@@ -209,9 +210,12 @@ export class Dashboard implements OnInit {
           return label.charAt(0).toUpperCase() + label.slice(1);
         });
 
-        if (data.receitaMensal.length === 1) {
+        const dataReceita = this.receitaMensalDataBrute.map((d) => d.receita);
+
+        // Adiciona ponto falso SOMENTE no gráfico
+        if (dataReceita.length === 1) {
           labelsReceita.unshift('');
-          data.receitaMensal.unshift({ mes: '', receita: 0 });
+          dataReceita.unshift(0);
         }
 
         this.receitaData = {
@@ -219,7 +223,7 @@ export class Dashboard implements OnInit {
           datasets: [
             {
               label: 'Receita',
-              data: data.receitaMensal.map((d) => d.receita),
+              data: dataReceita, // usa array com ponto falso
               fill: false,
               borderColor: '#42A5F5',
               tension: 0.1,
@@ -227,8 +231,7 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        // Sessões por dia
-        const labelsSessoes = data.sessoesPorDia.map((d) => {
+        const labelsSessoes = this.totalSessoesDataBrute.map((d) => {
           const [ano, mes, dia] = d.data.split('-');
           const nomesMeses = [
             'Janeiro',
@@ -252,7 +255,7 @@ export class Dashboard implements OnInit {
           datasets: [
             {
               label: 'Total de sessões',
-              data: data.sessoesPorDia.map((d) => d.total_sessoes),
+              data: this.totalSessoesDataBrute.map((d) => d.total_sessoes),
               fill: false,
               borderColor: '#FF6384',
               tension: 0.1,

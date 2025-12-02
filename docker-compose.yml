@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: 123456789
       POSTGRES_DB: db-project
     ports:
-      - "5432:5432"
+      - "5431:5431"
     volumes:
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./data-creation.sql:/docker-entrypoint-initdb.d/02-data.sql

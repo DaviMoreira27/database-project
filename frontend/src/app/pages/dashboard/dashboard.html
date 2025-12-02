@@ -10,7 +10,6 @@
         <p-progress-spinner ariaLabel="loading" />
       </div>
       } @else {
-
       <div class="flex flex-col gap-6 max-w-10/12 mx-auto">
         <!-- Receita Mensal -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
@@ -35,10 +34,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let r of receitaTabela">
+              @for (r of this.receitaMensalDataBrute; track r) {
+              <tr>
                 <td class="py-1">{{ r.mes }}</td>
                 <td class="py-1">{{ r.receita }}</td>
               </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -68,12 +69,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of problemasTabela">
+              @for (p of this.problemasPorAvaliacaoDataBrute; track p) {
+              <tr>
                 <td class="py-1">{{ p.n_registro }}</td>
                 <td class="py-1">{{ p.problemas }}</td>
                 <td class="py-1">{{ p.avaliacoes }}</td>
-                <td class="py-1">{{ p.razao }}</td>
+                <td class="py-1">{{ p.razao_problema_por_avaliacao }}</td>
               </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -103,12 +106,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let b of bicicletasTabela">
-                <td class="py-1">{{ b.ponto }}</td>
-                <td class="py-1">{{ b.total }}</td>
-                <td class="py-1">{{ b.no_ponto }}</td>
-                <td class="py-1">{{ b.percentual }}</td>
+              @for (b of this.bicicletasEstacionadasDataBrute; track b) {
+              <tr>
+                <td class="py-1">{{ b.ponto_retirada }}</td>
+                <td class="py-1">{{ b.total_estacionadas }}</td>
+                <td class="py-1">{{ b.estacionadas_no_ponto }}</td>
+                <td class="py-1">{{ b.percentual_relacional }}</td>
               </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -138,12 +143,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let e of ocupacaoTabela">
-                <td class="py-1">{{ e.ponto }}</td>
+              @for (e of this.taxaOcupacaoDataBrute; track e) {
+              <tr>
+                <td class="py-1">{{ e.n_registro }}</td>
                 <td class="py-1">{{ e.capacidade }}</td>
-                <td class="py-1">{{ e.disponiveis }}</td>
-                <td class="py-1">{{ e.taxa }}</td>
+                <td class="py-1">{{ e.bicicletas_disponiveis }}</td>
+                <td class="py-1">{{ e.taxa_ocupacao }}</td>
               </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -171,15 +178,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let s of sessoesTabela">
+              @for(s of this.totalSessoesDataBrute; track s) {
+              <tr>
                 <td class="py-1">{{ s.data }}</td>
-                <td class="py-1">{{ s.total }}</td>
+                <td class="py-1">{{ s.total_sessoes }}</td>
               </tr>
+              }
             </tbody>
           </table>
         </div>
       </div>
-
       }
     </main>
   </div>

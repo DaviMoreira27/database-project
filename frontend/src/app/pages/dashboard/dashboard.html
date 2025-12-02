@@ -5,19 +5,20 @@
     <app-header></app-header>
 
     <main class="flex-1 overflow-y-auto p-12">
-      @if(this.loading()) {
-      <div class="flex justify-center align-middle w-full h-full">
+      @if (this.loading()) {
+      <div class="flex justify-center items-center w-full h-full">
         <p-progress-spinner ariaLabel="loading" />
       </div>
       } @else {
-      <div
-        class="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-10/12 mx-auto content-start auto-rows-min"
-      >
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:col-span-6">
+
+      <div class="flex flex-col gap-6 max-w-10/12 mx-auto">
+        <!-- Receita Mensal -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
             Receita Mensal
           </h2>
-          <div class="relative w-full h-48 flex items-end justify-center">
+
+          <div class="relative w-full h-56 flex items-end justify-center">
             <p-chart
               type="line"
               [data]="receitaData"
@@ -25,13 +26,30 @@
               class="w-full h-full"
             ></p-chart>
           </div>
+
+          <table class="w-full text-sm mt-4 border-t">
+            <thead>
+              <tr class="text-left">
+                <th class="py-2">Mês</th>
+                <th class="py-2">Receita</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of receitaTabela">
+                <td class="py-1">{{ r.mes }}</td>
+                <td class="py-1">{{ r.receita }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:col-span-6">
+        <!-- Qualidade (Problemas) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
             Qualidade (Problemas)
           </h2>
-          <div class="relative w-full h-48 flex items-end justify-center">
+
+          <div class="relative w-full h-56 flex items-end justify-center">
             <p-chart
               type="bar"
               [data]="problemasData"
@@ -39,15 +57,34 @@
               class="w-full h-full"
             ></p-chart>
           </div>
+
+          <table class="w-full text-sm mt-4 border-t">
+            <thead>
+              <tr class="text-left">
+                <th class="py-2">Infra</th>
+                <th class="py-2">Problemas</th>
+                <th class="py-2">Avaliações</th>
+                <th class="py-2">Razão</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of problemasTabela">
+                <td class="py-1">{{ p.n_registro }}</td>
+                <td class="py-1">{{ p.problemas }}</td>
+                <td class="py-1">{{ p.avaliacoes }}</td>
+                <td class="py-1">{{ p.razao }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div
-          class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:col-span-6 md:row-span-2 flex flex-col mt-12"
-        >
+        <!-- Frota Estacionada -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
             Frota Estacionada
           </h2>
-          <div class="relative w-full flex-1 min-h-[300px] flex items-center justify-center">
+
+          <div class="relative w-full h-72 flex items-center justify-center">
             <p-chart
               type="pie"
               [data]="bicicletasData"
@@ -55,13 +92,34 @@
               class="w-full h-full"
             ></p-chart>
           </div>
+
+          <table class="w-full text-sm mt-4 border-t">
+            <thead>
+              <tr class="text-left">
+                <th class="py-2">Ponto</th>
+                <th class="py-2">Total</th>
+                <th class="py-2">No Ponto</th>
+                <th class="py-2">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let b of bicicletasTabela">
+                <td class="py-1">{{ b.ponto }}</td>
+                <td class="py-1">{{ b.total }}</td>
+                <td class="py-1">{{ b.no_ponto }}</td>
+                <td class="py-1">{{ b.percentual }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:col-span-6 mt-12">
+        <!-- Ocupação / Ponto -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
             Ocupação / Ponto
           </h2>
-          <div class="relative w-full h-40 flex items-center justify-center">
+
+          <div class="relative w-full h-56 flex items-center justify-center">
             <p-chart
               type="bar"
               [data]="estacionamentoData"
@@ -69,13 +127,34 @@
               class="w-full h-full"
             ></p-chart>
           </div>
+
+          <table class="w-full text-sm mt-4 border-t">
+            <thead>
+              <tr class="text-left">
+                <th class="py-2">Ponto</th>
+                <th class="py-2">Capacidade</th>
+                <th class="py-2">Disponíveis</th>
+                <th class="py-2">Taxa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let e of ocupacaoTabela">
+                <td class="py-1">{{ e.ponto }}</td>
+                <td class="py-1">{{ e.capacidade }}</td>
+                <td class="py-1">{{ e.disponiveis }}</td>
+                <td class="py-1">{{ e.taxa }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:col-span-6">
+        <!-- Sessões Diárias -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
             Sessões Diárias
           </h2>
-          <div class="relative w-full h-48 flex items-end justify-center">
+
+          <div class="relative w-full h-56 flex items-end justify-center">
             <p-chart
               type="line"
               [data]="sessoesData"
@@ -83,8 +162,24 @@
               class="w-full h-full"
             ></p-chart>
           </div>
+
+          <table class="w-full text-sm mt-4 border-t">
+            <thead>
+              <tr class="text-left">
+                <th class="py-2">Data</th>
+                <th class="py-2">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of sessoesTabela">
+                <td class="py-1">{{ s.data }}</td>
+                <td class="py-1">{{ s.total }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+
       }
     </main>
   </div>

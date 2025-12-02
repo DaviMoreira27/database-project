@@ -209,6 +209,11 @@ export class Dashboard implements OnInit {
           return label.charAt(0).toUpperCase() + label.slice(1);
         });
 
+        if (data.receitaMensal.length === 1) {
+          labelsReceita.unshift('');
+          data.receitaMensal.unshift({ mes: '', receita: 0 });
+        }
+
         this.receitaData = {
           labels: labelsReceita,
           datasets: [

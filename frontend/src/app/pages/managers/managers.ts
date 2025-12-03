@@ -39,20 +39,24 @@ interface Manager {
   templateUrl: './managers.html',
 })
 export class Managers implements OnInit {
+
+  // Injeção dos serviços necessários para requisições, formulários, navegação e notificações.
   private readonly toastService = inject(ToastService);
   private readonly httpService = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
+  // Armazena o CNPJ da provedora associado ao gerente logado.
   private cnpj!: string;
 
+  // Estados reativos para busca, modal, lista de gerentes e loading de tela e de salvamento.
   protected search = signal('');
   protected modalOpen = signal(false);
   protected data = signal<Manager[]>([]);
-
   protected loadingList = signal(true);
   protected loadingSave = signal(false);
 
+  // Estrutura do formulário utilizado para criação de um novo gerente.
   protected readonly roles = [{ label: 'Gerente', value: 'Gerente' }];
   protected readonly form: FormGroup = this.fb.group({
     cpf: ['', Validators.required],
@@ -63,28 +67,24 @@ export class Managers implements OnInit {
     rua: ['', Validators.required],
     numero: ['', Validators.required],
     cidade: ['', Validators.required],
-    uf: ['', Validators.required, Validators.maxLength(2)],
+    uf: ['', [Validators.required, Validators.maxLength(2)]],
     data_nascimento: ['', Validators.required],
     senha: ['', Validators.required],
   });
 
   ngOnInit(): void {
+    // Recupera o usuário logado; se não houver provedora, impede uso da página e redireciona ao login.
     const userData = JSON.parse(localStorage.getItem('user') ?? '') as LoggedUser['user'];
-
     if (!userData?.provedora) {
       this.toastService.error('Nao foi possivel obter as informacoes do usuario');
       this.router.navigate(['/login'], { replaceUrl: true });
       return;
     }
 
+    // Armazena o CNPJ e carrega a lista inicial de gerentes da provedora.
     this.cnpj = userData.provedora;
-
     this.httpService
-      .get<Manager[]>(`${environment.baseUrl}/listar/GERENTE`, {
-        params: {
-          cnpj: userData.provedora,
-        },
-      })
+      .get<Manager[]>(`${environment.baseUrl}/listar/GERENTE`, { params: { cnpj: userData.provedora } })
       .subscribe({
         next: (response) => {
           this.data.set(response);
@@ -98,6 +98,7 @@ export class Managers implements OnInit {
       });
   }
 
+  // Computed que retorna somente os gerentes filtrados pelo termo digitado no campo de busca.
   filtereds = computed(() => {
     const term = this.search().toLowerCase();
     return this.data().filter((item) =>
@@ -105,20 +106,19 @@ export class Managers implements OnInit {
     );
   });
 
+  // Atualiza o termo digitado no campo de busca.
   updateSearch(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     this.search.set(value);
   }
 
+  // Abre o modal e limpa o formulário para criação de um novo gerente.
   newManager() {
-    this.form.reset({
-      cargo: 'Gerente',
-      cidade: '',
-      uf: '',
-    });
+    this.form.reset({ cargo: 'Gerente', cidade: '', uf: '' });
     this.modalOpen.set(true);
   }
 
+  // Valida o formulário, envia os dados ao backend para criação e recarrega a lista de gerentes.
   save() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -127,6 +127,7 @@ export class Managers implements OnInit {
     }
 
     this.loadingSave.set(true);
+
     const body = {
       cpf: this.form.value.cpf,
       cargo: 'GERENTE',
@@ -147,15 +148,10 @@ export class Managers implements OnInit {
         this.toastService.success('Gerente criado com sucesso!');
         this.modalOpen.set(false);
 
+        // Recarrega a lista atualizada de gerentes após a criação.
         this.httpService
-          .get<Manager[]>(`${environment.baseUrl}/listar/GERENTE`, {
-            params: {
-              cnpj: this.cnpj,
-            },
-          })
-          .subscribe({
-            next: (updatedList) => this.data.set(updatedList),
-          });
+          .get<Manager[]>(`${environment.baseUrl}/listar/GERENTE`, { params: { cnpj: this.cnpj } })
+          .subscribe({ next: (updatedList) => this.data.set(updatedList) });
 
         this.loadingSave.set(false);
       },

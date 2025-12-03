@@ -1,7 +1,3 @@
--- ============================
--- Tipos ENUM utilizados no sistema
--- ============================
-
 -- Status possíveis de uma bicicleta
 CREATE TYPE STATUS_BICICLETA AS ENUM (
     'MANUTENCAO',
@@ -32,9 +28,7 @@ CREATE TYPE STATUS_MANUTENCAO AS ENUM (
     'PENDENTE'
 );
 
--- ============================
 -- Tabelas básicas do sistema
--- ============================
 
 -- Endereços reutilizáveis por várias entidades
 CREATE TABLE IF NOT EXISTS endereco (
@@ -66,7 +60,6 @@ CREATE TABLE IF NOT EXISTS usuario (
     CONSTRAINT fk_usuario_endereco
         FOREIGN KEY (cep, rua, numero) REFERENCES endereco (cep, rua, numero),
 
-    -- Apenas cargos válidos
     CONSTRAINT chk_usuario_cargo CHECK (UPPER(cargo) IN ('GERENTE', 'CLIENTE', 'ADMINISTRADOR'))
 );
 
@@ -151,6 +144,7 @@ CREATE TABLE IF NOT EXISTS avaliacao (
     CONSTRAINT fk_avaliacao_cliente FOREIGN KEY (cliente) REFERENCES cliente (cpf)
 );
 
+-- Bicicletas e veículos elétricos
 
 -- Bicicletas vinculadas a uma provedora
 CREATE TABLE IF NOT EXISTS bicicleta (

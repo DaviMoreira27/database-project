@@ -37,6 +37,7 @@ class ProviderRepositories:
             if row is None:
                 return None
 
+            # Converte o registro retornado em um modelo Pydantic
             return ProviderTableResponse(**dict(row))
 
         except asyncpg.UndefinedColumnError as e:

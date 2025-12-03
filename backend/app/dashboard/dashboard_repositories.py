@@ -8,6 +8,7 @@ from app.dashboard.dashboard_types import (
     ReceitaMensalResponse,
     SessoesPorDiaResponse,
     TaxaOcupacaoResponse,
+    TotensAtivosResponse,
 )
 from app.database.database_service import DatabaseService
 
@@ -160,6 +161,39 @@ class DashboardRepositories:
         except asyncpg.PostgresError as e:
             logger.error(f"Erro SQL em receita_mensal: {e}")
             raise DashboardQueryError("Falha ao consultar receita mensal") from e
+
+    async def totens_ativos(self, cnpj: str):
+        query = """
+            SELECT td.n_registro
+            FROM totens_de_recarga td
+            JOIN infraestrutura i ON i.n_registro = td.n_registro
+            WHERE i.provedora = $1
+            AND NOT EXISTS (
+                SELECT 1
+                FROM (
+                    SELECT DISTINCT sr.data::date AS dia
+                    FROM sessao_recarga sr
+                    JOIN totens_de_recarga td2 ON td2.n_registro = sr.totem
+                    JOIN infraestrutura i2 ON i2.n_registro = td2.n_registro
+                    WHERE i2.provedora = $1
+                ) dias_provedora
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM sessao_recarga sr2
+                    WHERE sr2.totem = td.n_registro
+                      AND sr2.data::date = dias_provedora.dia
+                )
+            );
+        """
+
+        try:
+            conn = await self.db.db_connection()
+            rows = await conn.fetch(query, cnpj)
+            return [TotensAtivosResponse(**dict(r)) for r in rows]
+
+        except asyncpg.PostgresError as e:
+            logger.error(f"Erro SQL em totens_ativos: {e}")
+            raise DashboardQueryError("Falha ao consultar totens ativos") from e
 
     async def sessoes_por_dia(self, cnpj: str):
         query = """

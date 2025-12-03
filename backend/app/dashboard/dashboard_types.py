@@ -33,3 +33,7 @@ class ReceitaMensalResponse(BaseModel):
 class SessoesPorDiaResponse(BaseModel):
     data: date
     total_sessoes: int
+
+
+class TotensAtivosResponse(BaseModel):
+    n_registro: str

@@ -1,7 +1,7 @@
 import logging
-
 import asyncpg
 
+# Importa os tipos de resposta usados para tipar os retornos dos métodos
 from app.dashboard.dashboard_types import (
     BicicletasEstacionadasResponse,
     ProblemasAvaliacoesResponse,
@@ -9,24 +9,33 @@ from app.dashboard.dashboard_types import (
     TaxaOcupacaoResponse,
     TotensAtivosResponse,
 )
+
+# Serviço responsável pela conexão com o banco de dados
 from app.database.database_service import DatabaseService
 
 logger = logging.getLogger(__name__)
 
 
 class DashboardQueryError(Exception):
+    """Exceção personalizada para erros nas consultas do dashboard."""
     pass
 
 
 class DashboardRepositories:
     def __init__(self):
+        # Inicializa o serviço de banco de dados
         self._database_service = DatabaseService()
 
     @property
     def db(self):
+        # Facilita o acesso ao serviço de banco
         return self._database_service
 
     async def bicicletas_estacionadas_por_ponto(self, cnpj: str):
+        """
+        Retorna estatísticas de bicicletas estacionadas por ponto de retirada.
+        Calcula total estacionado, total por ponto e o percentual relativo.
+        """
         query = """
             SELECT
                 pr.n_registro AS ponto_retirada,
@@ -76,8 +85,13 @@ class DashboardRepositories:
         """
 
         try:
+            # Obtém conexão do pool
             conn = await self.db.db_connection()
+
+            # Executa a consulta
             rows = await conn.fetch(query, cnpj)
+
+            # Converte resultado para os tipos de resposta
             return [BicicletasEstacionadasResponse(**dict(r)) for r in rows]
 
         except asyncpg.PostgresError as e:
@@ -85,6 +99,10 @@ class DashboardRepositories:
             raise DashboardQueryError("Falha ao consultar bicicletas estacionadas") from e
 
     async def problemas_por_avaliacao(self, cnpj: str):
+        """
+        Retorna o número de problemas e avaliações por infraestrutura
+        e a razão problemas/avaliação.
+        """
         query = """
             SELECT
                 i.n_registro,
@@ -119,6 +137,10 @@ class DashboardRepositories:
             raise DashboardQueryError("Falha ao consultar problemas por avaliação") from e
 
     async def taxa_ocupacao(self, cnpj: str):
+        """
+        Retorna a taxa de ocupação (bicicletas disponíveis / capacidade)
+        para cada ponto de retirada.
+        """
         query = """
             SELECT
                 pr.n_registro,
@@ -140,6 +162,10 @@ class DashboardRepositories:
             raise DashboardQueryError("Falha ao consultar taxa de ocupação") from e
 
     async def receita_mensal(self, cnpj: str):
+        """
+        Soma a receita mensal de recargas realizadas nos totens
+        pertencentes à provedora.
+        """
         query = """
             SELECT
                 DATE_TRUNC('month', sr.data) AS mes,
@@ -162,6 +188,11 @@ class DashboardRepositories:
             raise DashboardQueryError("Falha ao consultar receita mensal") from e
 
     async def totens_ativos(self, cnpj: str):
+        """
+        Retorna os totens que estiveram ativos em todos os dias em que 
+        qualquer outro totem da mesma provedora teve sessões de recarga.
+        O objetivo é identificar totens sem dias de inatividade.
+        """
         query = """
             SELECT td.n_registro
             FROM totens_de_recarga td
@@ -193,5 +224,3 @@ class DashboardRepositories:
         except asyncpg.PostgresError as e:
             logger.error(f"Erro SQL em totens_ativos: {e}")
             raise DashboardQueryError("Falha ao consultar totens ativos") from e
-
-    

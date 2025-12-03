@@ -12,8 +12,9 @@ import { environment } from '../../../environments/environment.development';
 import { ChartData } from 'chart.js';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
-// Tipagens -------------------------
-
+// --------------------------------------------------------------
+// Tipagens utilizadas para representar dados recebidos do backend
+// --------------------------------------------------------------
 export interface TotensAtivos {
   n_registro: string;
 }
@@ -50,41 +51,42 @@ export interface BicicletasEstacionadas {
   imports: [NavbarComponent, Header, ChartModule, ProgressSpinnerModule],
 })
 export class Dashboard implements OnInit {
+
+  // Injeção de serviços centrais da aplicação:
+  // - HttpClient para requisições
+  // - ToastService para mensagens de erro
+  // - Router para navegação
   private readonly httpService = inject(HttpClient);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
 
+  // Controle visual de carregamento da página
   protected loading = signal(true);
 
-  // Dados para os gráficos -----------------------------
-
+  // Estruturas de dados utilizadas pelos gráficos do Chart.js
+  // Cada gráfico recebe um objeto ChartData
   protected estacionamentoData!: ChartData<'bar'>;
   protected problemasData!: ChartData<'bar'>;
   protected bicicletasData!: ChartData<'bar'>;
   protected receitaData!: ChartData<'line'>;
+  protected totensAtivosData!: ChartData<'bar'>;
 
-  protected totensAtivosData!: ChartData<'bar'>;    
-  protected totensAtivosDataBrute: TotensAtivos[] = []; 
-
-  // Dados brutos --------------------------------------
-
+  // Armazena os dados brutos vindos do backend antes de processar
+  // para os gráficos
+  protected totensAtivosDataBrute: TotensAtivos[] = [];
   protected bicicletasEstacionadasDataBrute: BicicletasEstacionadas[] = [];
   protected problemasPorAvaliacaoDataBrute: ProblemasPorAvaliacao[] = [];
   protected taxaOcupacaoDataBrute: TaxaOcupacao[] = [];
   protected receitaMensalDataBrute: ReceitaMensal[] = [];
 
-  // Opções visuais -------------------------------------
-
+  // Opções compartilhadas de configuração visual dos gráficos
   protected readonly compactOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'bottom',
-        labels: {
-          boxWidth: 12,
-          font: { size: 10 },
-        },
+        labels: { boxWidth: 12, font: { size: 10 } },
       },
     },
     scales: {
@@ -94,8 +96,10 @@ export class Dashboard implements OnInit {
   };
 
   ngOnInit(): void {
-    const userData = JSON.parse(localStorage.getItem('user') ?? '') as LoggedUser['user'];
 
+    // Recupera o usuário logado e obtém o CNPJ da provedora
+    // Se não existir, força logout + redirecionamento
+    const userData = JSON.parse(localStorage.getItem('user') ?? '') as LoggedUser['user'];
     if (!userData.provedora) {
       this.toastService.error('Nao foi possivel obter as informacoes do usuario');
       this.router.navigate(['/login'], { replaceUrl: true });
@@ -104,8 +108,8 @@ export class Dashboard implements OnInit {
 
     const cnpj = userData.provedora;
 
-    // Requisições ------------------------------------------
-
+    // Criação das requisições HTTP
+    // Cada uma acessa um endpoint diferente do backend
     const totensAtivos$ = this.httpService.get<TotensAtivos[]>(
       `${environment.baseUrl}/totens-ativos/${cnpj}`,
     );
@@ -126,8 +130,8 @@ export class Dashboard implements OnInit {
       `${environment.baseUrl}/bicicletas-estacionadas/${cnpj}`,
     );
 
-    // Execução em paralelo ---------------------------------
-
+    // forkJoin executa todas as requisições em paralelo
+    // O "next" só é executado quando TODAS retornam sucesso
     forkJoin({
       totensAtivos: totensAtivos$,
       receitaMensal: receitaMensal$,
@@ -136,7 +140,8 @@ export class Dashboard implements OnInit {
       bicicletasEstacionadas: bicicletasEstacionadas$,
     }).subscribe({
       next: (data) => {
-        // Totens ativos todos os dias --------------------------------
+
+        // Processamento dos Totens Ativos (dados + gráfico)
         this.totensAtivosDataBrute = data.totensAtivos;
 
         this.totensAtivosData = {
@@ -150,7 +155,7 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        // Receita Mensal ----------------------------------------------
+        // Receita Mensal: conversão das datas + montagem do gráfico
         this.receitaMensalDataBrute = data.receitaMensal.map((d) => ({
           ...d,
           receita: Number(d.receita),
@@ -177,7 +182,7 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        // Ocupação -----------------------------------------------
+        // Taxa de Ocupação: tratamento dos números e gráfico
         this.taxaOcupacaoDataBrute = data.taxaOcupacao.map((d) => ({
           ...d,
           capacidade: Number(d.capacidade),
@@ -201,7 +206,7 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        // Problemas por avaliação --------------------------------------
+        // Problemas por Avaliação: gráfico de barras simples
         this.problemasPorAvaliacaoDataBrute = data.problemasPorAvaliacao;
 
         this.problemasData = {
@@ -215,7 +220,7 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        // Frota estacionada -------------------------------------------
+        // Frota Estacionada: dois datasets comparativos
         this.bicicletasEstacionadasDataBrute = data.bicicletasEstacionadas;
 
         this.estacionamentoData = {
@@ -234,8 +239,11 @@ export class Dashboard implements OnInit {
           ],
         };
 
+        // Remove o estado de carregamento visual
         this.loading.set(false);
       },
+
+      // Qualquer erro em QUALQUER requisição do forkJoin cai aqui
       error: (err) => {
         this.toastService.error('Falha ao carregar dados do dashboard');
         console.error(err);

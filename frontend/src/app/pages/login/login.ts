@@ -5,7 +5,7 @@ import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { timer } from 'rxjs';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { ToastService } from '../../services/toast-service';
 import { Router } from '@angular/router';
@@ -29,16 +29,21 @@ export interface LoggedUser {
   templateUrl: './login.html',
 })
 export class Login {
+
+  // Injeção dos serviços principais
   private readonly httpService = inject(HttpClient);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
 
+  // Opções disponíveis para seleção de cargo durante o login.
   protected readonly roles = [
     { label: 'Gerente', value: 'GERENTE' },
   ];
 
+  // Controle visual de carregamento mostrado no botão de login.
   protected loading = signal(false);
 
+  // Estrutura do formulário
   form = new FormGroup({
     email: new FormControl('', { validators: [Validators.required], nonNullable: true }),
     password: new FormControl('', { validators: [Validators.required], nonNullable: true }),
@@ -52,6 +57,7 @@ export class Login {
     }
 
     this.loading.set(true);
+
     this.httpService
       .post<LoggedUser>(`${environment.baseUrl}/login`, {
         email: this.form.get('email')?.value,
@@ -64,15 +70,19 @@ export class Login {
           localStorage.setItem('user', JSON.stringify(response.user));
           this.toastService.success(response.message ?? 'Usuário logado com sucesso');
         },
+
         error: (err) => {
           this.toastService.error('Falha ao realizar login');
           console.error(err);
           this.loading.set(false);
         },
+
         complete: () => {
           this.loading.set(false);
         },
       });
+
+    // Timer de debug: apenas imprime os valores do formulário após 5 segundos.
     timer(5000).subscribe(() => {
       console.log(this.form.getRawValue());
       this.loading.set(false);

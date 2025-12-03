@@ -59,9 +59,9 @@ class DashboardService:
                 detail="Erro interno ao consultar receita mensal"
             )
 
-    async def sessoes_por_dia(self, cnpj: str):
+    async def totens_ativos(self, cnpj: str):
         try:
-            return await self._repo.sessoes_por_dia(cnpj)
+            return await self._repo.totens_ativos(cnpj)
 
         except (InternalDatabaseError, DashboardQueryError):
             logger.error("Erro ao consultar sessões por dia")

@@ -6,8 +6,8 @@ from app.dashboard.dashboard_types import (
     BicicletasEstacionadasResponse,
     ProblemasAvaliacoesResponse,
     ReceitaMensalResponse,
-    SessoesPorDiaResponse,
     TaxaOcupacaoResponse,
+    TotensAtivosResponse,
 )
 from app.database.database_service import DatabaseService
 
@@ -161,24 +161,39 @@ class DashboardRepositories:
             logger.error(f"Erro SQL em receita_mensal: {e}")
             raise DashboardQueryError("Falha ao consultar receita mensal") from e
 
-    async def sessoes_por_dia(self, cnpj: str):
+    async def totens_ativos(self, cnpj: str):
         query = """
-            SELECT
-                sr.data,
-                COUNT(*) AS total_sessoes
-            FROM sessao_recarga sr
-            JOIN totens_de_recarga td ON td.n_registro = sr.totem
+            SELECT td.n_registro
+            FROM totens_de_recarga td
             JOIN infraestrutura i ON i.n_registro = td.n_registro
             WHERE i.provedora = $1
-            GROUP BY sr.data
-            ORDER BY sr.data;
+            AND NOT EXISTS (
+                -- Para cada dia em que a provedora teve alguma sessão...
+                SELECT 1
+                FROM (
+                    SELECT DISTINCT sr.data::date AS dia
+                    FROM sessao_recarga sr
+                    JOIN totens_de_recarga td2 ON td2.n_registro = sr.totem
+                    JOIN infraestrutura i2 ON i2.n_registro = td2.n_registro
+                    WHERE i2.provedora = $1
+                ) dias_provedora
+                WHERE NOT EXISTS (
+                    -- ...verificar se este totem NÃO teve sessão nesse dia.
+                    SELECT 1
+                    FROM sessao_recarga sr2
+                    WHERE sr2.totem = td.n_registro
+                      AND sr2.data::date = dias_provedora.dia
+                )
+            );
         """
 
         try:
             conn = await self.db.db_connection()
             rows = await conn.fetch(query, cnpj)
-            return [SessoesPorDiaResponse(**dict(r)) for r in rows]
+            # Como agora o retorno é apenas n_registro, precisamos devolver a estrutura correta:
+            return [{"n_registro": r["n_registro"]} for r in rows]
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Erro SQL em sessoes_por_dia: {e}")
-            raise DashboardQueryError("Falha ao consultar sessões por dia") from e
+            logger.error(f"Erro SQL em sessoes_por_dia (totens todos os dias): {e}")
+            raise DashboardQueryError("Falha ao consultar totens que operaram todos os dias") from e
+

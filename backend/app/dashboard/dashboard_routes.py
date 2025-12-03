@@ -29,4 +29,3 @@ async def receita_mensal(cnpj: str):
 @router.get("/totens-ativos/{cnpj}")
 async def totens_ativos(cnpj: str):
     return await dashboard_service.totens_ativos(cnpj)
-

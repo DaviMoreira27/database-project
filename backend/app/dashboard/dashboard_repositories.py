@@ -168,7 +168,6 @@ class DashboardRepositories:
             JOIN infraestrutura i ON i.n_registro = td.n_registro
             WHERE i.provedora = $1
             AND NOT EXISTS (
-                -- Para cada dia em que a provedora teve alguma sessão...
                 SELECT 1
                 FROM (
                     SELECT DISTINCT sr.data::date AS dia
@@ -178,7 +177,6 @@ class DashboardRepositories:
                     WHERE i2.provedora = $1
                 ) dias_provedora
                 WHERE NOT EXISTS (
-                    -- ...verificar se este totem NÃO teve sessão nesse dia.
                     SELECT 1
                     FROM sessao_recarga sr2
                     WHERE sr2.totem = td.n_registro
@@ -190,10 +188,10 @@ class DashboardRepositories:
         try:
             conn = await self.db.db_connection()
             rows = await conn.fetch(query, cnpj)
-            # Como agora o retorno é apenas n_registro, precisamos devolver a estrutura correta:
-            return [{"n_registro": r["n_registro"]} for r in rows]
+            return [TotensAtivosResponse(**dict(r)) for r in rows]
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Erro SQL em sessoes_por_dia (totens todos os dias): {e}")
-            raise DashboardQueryError("Falha ao consultar totens que operaram todos os dias") from e
+            logger.error(f"Erro SQL em totens_ativos: {e}")
+            raise DashboardQueryError("Falha ao consultar totens ativos") from e
 
+    

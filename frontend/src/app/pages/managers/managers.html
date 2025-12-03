@@ -26,7 +26,7 @@
       @if (this.loadingList()) {
       <p-progress-spinner ariaLabel="loading" />
       } @else {
-      <p-table [value]="filtereds()" class="shadow border border-slate-200">
+      <p-table [value]="data()" class="shadow border border-slate-200">
         <ng-template pTemplate="header">
           <tr>
             <th class="font-semibold">CPF</th>
@@ -50,6 +50,7 @@
   </div>
 </div>
 
+<!-- 🟢 TAG P-DIALOG CORRETA E VALIDADA -->
 <p-dialog
   header="Novo Gerente"
   [modal]="true"
@@ -57,7 +58,8 @@
   [resizable]="false"
   [closable]="true"
   [style]="{ width: '500px' }"
-  [(visible)]="modalOpen"
+  [visible]="modalOpen()"
+  (visibleChange)="modalOpen.set($event)"
 >
   <form [formGroup]="form" class="flex flex-col gap-4">
     <input

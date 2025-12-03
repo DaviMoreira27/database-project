@@ -69,3 +69,13 @@ class DashboardService:
                 status_code=500,
                 detail="Erro interno ao consultar sessões por dia"
             )
+    async def buscar_gerentes(self, busca: str, cnpj: str):
+        try:
+            return await self._repo.buscar_gerentes(busca, cnpj)
+
+        except (InternalDatabaseError, DashboardQueryError):
+            logger.error("Erro ao buscar gerentes")
+            raise HTTPException(
+                status_code=500,
+                detail="Erro interno ao buscar gerentes"
+            )

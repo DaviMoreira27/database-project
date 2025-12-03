@@ -177,9 +177,11 @@ SELECT u.cpf, u.nome, u.email, u.cargo
 FROM usuario u
 JOIN gerente g ON g.cpf = u.cpf
 WHERE u.cargo = 'GERENTE'
+  AND g.provedora = $2
   AND (
-        LOWER(u.cpf)   LIKE CONCAT('%', :busca, '%') OR
-        LOWER(u.nome)  LIKE CONCAT('%', :busca, '%') OR
-        LOWER(u.email) LIKE CONCAT('%', :busca, '%') OR
-        LOWER(u.cargo) LIKE CONCAT('%', :busca, '%')
+        LOWER(u.cpf)   LIKE CONCAT('%', LOWER($1), '%') OR
+        LOWER(u.nome)  LIKE CONCAT('%', LOWER($1), '%') OR
+        LOWER(u.email) LIKE CONCAT('%', LOWER($1), '%') OR
+        LOWER(u.cargo) LIKE CONCAT('%', LOWER($1), '%')
       );
+

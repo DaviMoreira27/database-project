@@ -29,3 +29,7 @@ async def receita_mensal(cnpj: str):
 @router.get("/totens-ativos/{cnpj}")
 async def totens_ativos(cnpj: str):
     return await dashboard_service.totens_ativos(cnpj)
+
+@router.get("/gerentes")
+async def buscar_gerentes(busca: str, cnpj: str):
+    return await dashboard_service.buscar_gerentes(busca, cnpj)

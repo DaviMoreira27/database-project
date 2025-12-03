@@ -224,3 +224,26 @@ class DashboardRepositories:
         except asyncpg.PostgresError as e:
             logger.error(f"Erro SQL em totens_ativos: {e}")
             raise DashboardQueryError("Falha ao consultar totens ativos") from e
+
+    async def buscar_gerentes(self, busca: str, cnpj: str):
+        query = """
+            SELECT u.cpf, u.nome, u.email, u.cargo
+            FROM usuario u
+            JOIN gerente g ON g.cpf = u.cpf
+            WHERE u.cargo = 'GERENTE'
+            AND g.provedora = $2
+            AND (
+                    LOWER(u.cpf)   LIKE CONCAT('%', LOWER($1), '%') OR
+                    LOWER(u.nome)  LIKE CONCAT('%', LOWER($1), '%') OR
+                    LOWER(u.email) LIKE CONCAT('%', LOWER($1), '%') OR
+                    LOWER(u.cargo) LIKE CONCAT('%', LOWER($1), '%')
+                );
+        """
+
+        try:
+            conn = await self.db.db_connection()
+            rows = await conn.fetch(query, busca, cnpj)
+            return [dict(r) for r in rows]
+
+        except Exception as e:
+            raise DashboardQueryError("Falha ao buscar gerentes") from e

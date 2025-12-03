@@ -12,9 +12,10 @@ import { environment } from '../../../environments/environment.development';
 import { ChartData } from 'chart.js';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
-export interface SessoesPorDia {
-  data: string;
-  total_sessoes: number;
+// Tipagens -------------------------
+
+export interface TotensAtivos {
+  n_registro: string;
 }
 
 export interface ReceitaMensal {
@@ -55,17 +56,24 @@ export class Dashboard implements OnInit {
 
   protected loading = signal(true);
 
+  // Dados para os gráficos -----------------------------
+
   protected estacionamentoData!: ChartData<'bar'>;
   protected problemasData!: ChartData<'bar'>;
   protected bicicletasData!: ChartData<'bar'>;
   protected receitaData!: ChartData<'line'>;
-  protected sessoesData!: ChartData<'line'>;
+
+  protected totensAtivosData!: ChartData<'bar'>;    
+  protected totensAtivosDataBrute: TotensAtivos[] = []; 
+
+  // Dados brutos --------------------------------------
 
   protected bicicletasEstacionadasDataBrute: BicicletasEstacionadas[] = [];
   protected problemasPorAvaliacaoDataBrute: ProblemasPorAvaliacao[] = [];
   protected taxaOcupacaoDataBrute: TaxaOcupacao[] = [];
   protected receitaMensalDataBrute: ReceitaMensal[] = [];
-  protected totalSessoesDataBrute: SessoesPorDia[] = [];
+
+  // Opções visuais -------------------------------------
 
   protected readonly compactOptions = {
     responsive: true,
@@ -83,9 +91,6 @@ export class Dashboard implements OnInit {
       x: { display: true, grid: { display: true } },
       y: { display: true, grid: { display: true }, beginAtZero: true },
     },
-    elements: {
-      point: { radius: 0, hitRadius: 10, hoverRadius: 4 },
-    },
   };
 
   ngOnInit(): void {
@@ -99,8 +104,10 @@ export class Dashboard implements OnInit {
 
     const cnpj = userData.provedora;
 
-    const sessoesPorDia$ = this.httpService.get<SessoesPorDia[]>(
-      `${environment.baseUrl}/sessoes-por-dia/${cnpj}`,
+    // Requisições ------------------------------------------
+
+    const totensAtivos$ = this.httpService.get<TotensAtivos[]>(
+      `${environment.baseUrl}/totens-ativos/${cnpj}`,
     );
 
     const receitaMensal$ = this.httpService.get<ReceitaMensal[]>(
@@ -119,71 +126,64 @@ export class Dashboard implements OnInit {
       `${environment.baseUrl}/bicicletas-estacionadas/${cnpj}`,
     );
 
+    // Execução em paralelo ---------------------------------
+
     forkJoin({
-      sessoesPorDia: sessoesPorDia$,
+      totensAtivos: totensAtivos$,
       receitaMensal: receitaMensal$,
       taxaOcupacao: taxaOcupacao$,
       problemasPorAvaliacao: problemasPorAvaliacao$,
       bicicletasEstacionadas: bicicletasEstacionadas$,
     }).subscribe({
       next: (data) => {
-        this.totalSessoesDataBrute = data.sessoesPorDia.map((d) => ({
-          ...d,
-          total_sessoes: Number(d.total_sessoes),
-        }));
+        // Totens ativos todos os dias --------------------------------
+        this.totensAtivosDataBrute = data.totensAtivos;
 
+        this.totensAtivosData = {
+          labels: this.totensAtivosDataBrute.map((d) => d.n_registro),
+          datasets: [
+            {
+              label: 'Totens ativos todos os dias',
+              data: this.totensAtivosDataBrute.map(() => 1),
+              backgroundColor: '#42A5F5',
+            },
+          ],
+        };
+
+        // Receita Mensal ----------------------------------------------
         this.receitaMensalDataBrute = data.receitaMensal.map((d) => ({
           ...d,
           receita: Number(d.receita),
         }));
 
+        const labelsReceita = this.receitaMensalDataBrute.map((d) => {
+          const date = new Date(d.mes);
+          return new Intl.DateTimeFormat('pt-BR', {
+            month: 'long',
+            year: 'numeric',
+          }).format(date);
+        });
+
+        this.receitaData = {
+          labels: labelsReceita,
+          datasets: [
+            {
+              label: 'Receita',
+              data: this.receitaMensalDataBrute.map((d) => d.receita),
+              fill: false,
+              borderColor: '#42A5F5',
+              tension: 0.1,
+            },
+          ],
+        };
+
+        // Ocupação -----------------------------------------------
         this.taxaOcupacaoDataBrute = data.taxaOcupacao.map((d) => ({
           ...d,
           capacidade: Number(d.capacidade),
           bicicletas_disponiveis: Number(d.bicicletas_disponiveis),
           taxa_ocupacao: Number(d.taxa_ocupacao),
         }));
-
-        this.problemasPorAvaliacaoDataBrute = data.problemasPorAvaliacao.map((d) => ({
-          ...d,
-          problemas: Number(d.problemas),
-          avaliacoes: Number(d.avaliacoes),
-          razao_problema_por_avaliacao: Number(d.razao_problema_por_avaliacao),
-        }));
-
-        this.bicicletasEstacionadasDataBrute = data.bicicletasEstacionadas.map((d) => ({
-          ...d,
-          total_estacionadas: Number(d.total_estacionadas),
-          estacionadas_no_ponto: Number(d.estacionadas_no_ponto),
-          percentual_relacional: Number(d.percentual_relacional),
-        }));
-
-        this.estacionamentoData = {
-          labels: this.bicicletasEstacionadasDataBrute.map((d) => d.ponto_retirada),
-          datasets: [
-            {
-              label: 'Estacionadas no ponto',
-              data: this.bicicletasEstacionadasDataBrute.map((d) => d.estacionadas_no_ponto),
-              backgroundColor: '#42A5F5',
-            },
-            {
-              label: 'Total estacionadas',
-              data: this.bicicletasEstacionadasDataBrute.map((d) => d.total_estacionadas),
-              backgroundColor: '#9CCC65',
-            },
-          ],
-        };
-
-        this.problemasData = {
-          labels: this.problemasPorAvaliacaoDataBrute.map((d) => d.n_registro),
-          datasets: [
-            {
-              label: 'Problemas',
-              data: this.problemasPorAvaliacaoDataBrute.map((d) => d.problemas),
-              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8E44AD'],
-            },
-          ],
-        };
 
         this.bicicletasData = {
           labels: this.taxaOcupacaoDataBrute.map((d) => d.n_registro),
@@ -201,64 +201,35 @@ export class Dashboard implements OnInit {
           ],
         };
 
-        const labelsReceita = this.receitaMensalDataBrute.map((d) => {
-          const date = new Date(d.mes);
-          const label = new Intl.DateTimeFormat('pt-BR', {
-            month: 'long',
-            year: 'numeric',
-          }).format(date);
-          return label.charAt(0).toUpperCase() + label.slice(1);
-        });
+        // Problemas por avaliação --------------------------------------
+        this.problemasPorAvaliacaoDataBrute = data.problemasPorAvaliacao;
 
-        const dataReceita = this.receitaMensalDataBrute.map((d) => d.receita);
-
-        // Adiciona ponto falso SOMENTE no gráfico
-        if (dataReceita.length === 1) {
-          labelsReceita.unshift('');
-          dataReceita.unshift(0);
-        }
-
-        this.receitaData = {
-          labels: labelsReceita,
+        this.problemasData = {
+          labels: this.problemasPorAvaliacaoDataBrute.map((d) => d.n_registro),
           datasets: [
             {
-              label: 'Receita',
-              data: dataReceita, // usa array com ponto falso
-              fill: false,
-              borderColor: '#42A5F5',
-              tension: 0.1,
+              label: 'Problemas',
+              data: this.problemasPorAvaliacaoDataBrute.map((d) => d.problemas),
+              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8E44AD'],
             },
           ],
         };
 
-        const labelsSessoes = this.totalSessoesDataBrute.map((d) => {
-          const [ano, mes, dia] = d.data.split('-');
-          const nomesMeses = [
-            'Janeiro',
-            'Fevereiro',
-            'Março',
-            'Abril',
-            'Maio',
-            'Junho',
-            'Julho',
-            'Agosto',
-            'Setembro',
-            'Outubro',
-            'Novembro',
-            'Dezembro',
-          ];
-          return `${dia} ${nomesMeses[parseInt(mes) - 1]}`;
-        });
+        // Frota estacionada -------------------------------------------
+        this.bicicletasEstacionadasDataBrute = data.bicicletasEstacionadas;
 
-        this.sessoesData = {
-          labels: labelsSessoes,
+        this.estacionamentoData = {
+          labels: this.bicicletasEstacionadasDataBrute.map((d) => d.ponto_retirada),
           datasets: [
             {
-              label: 'Total de sessões',
-              data: this.totalSessoesDataBrute.map((d) => d.total_sessoes),
-              fill: false,
-              borderColor: '#FF6384',
-              tension: 0.1,
+              label: 'Estacionadas no ponto',
+              data: this.bicicletasEstacionadasDataBrute.map((d) => d.estacionadas_no_ponto),
+              backgroundColor: '#42A5F5',
+            },
+            {
+              label: 'Total estacionadas',
+              data: this.bicicletasEstacionadasDataBrute.map((d) => d.total_estacionadas),
+              backgroundColor: '#9CCC65',
             },
           ],
         };
@@ -269,7 +240,6 @@ export class Dashboard implements OnInit {
         this.toastService.error('Falha ao carregar dados do dashboard');
         console.error(err);
         this.loading.set(false);
-        this.router.navigate(['/login'], { replaceUrl: true });
       },
     });
   }

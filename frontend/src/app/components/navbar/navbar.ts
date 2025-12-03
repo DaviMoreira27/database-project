@@ -21,10 +21,6 @@ export class NavbarComponent {
   menuItems: MenuItem[] = [
     { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
     { label: 'Gerentes', icon: 'pi pi-users', route: '/managers' },
-    { label: 'Reports', icon: 'pi pi-chart-line', route: '/reports' },
-    { label: 'Infraestrutura', icon: 'pi pi-inbox', route: '/infra' },
-    { label: 'Configuracoes', icon: 'pi pi-cog', route: '/settings' },
-    { label: 'Suporte', icon: 'pi pi-question-circle', route: '/support' },
   ];
 
   toggleSidebar() {

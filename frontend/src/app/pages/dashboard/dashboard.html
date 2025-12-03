@@ -155,16 +155,16 @@
           </table>
         </div>
 
-        <!-- Sessões Diárias -->
+        <!-- Totens Ativos Todos os Dias -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col">
           <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">
-            Sessões Diárias
+            Totens que tiveram sessão em todos os dias de operação
           </h2>
 
           <div class="relative w-full h-56 flex items-end justify-center">
             <p-chart
-              type="line"
-              [data]="sessoesData"
+              type="bar"
+              [data]="totensAtivosData"
               [options]="compactOptions"
               class="w-full h-full"
             ></p-chart>
@@ -173,15 +173,13 @@
           <table class="w-full text-sm mt-4 border-t">
             <thead>
               <tr class="text-left">
-                <th class="py-2">Data</th>
-                <th class="py-2">Total</th>
+                <th class="py-2">Totem</th>
               </tr>
             </thead>
             <tbody>
-              @for(s of this.totalSessoesDataBrute; track s) {
+              @for (t of this.totensAtivosDataBrute; track t) {
               <tr>
-                <td class="py-1">{{ s.data }}</td>
-                <td class="py-1">{{ s.total_sessoes }}</td>
+                <td class="py-1">{{ t.n_registro }}</td>
               </tr>
               }
             </tbody>

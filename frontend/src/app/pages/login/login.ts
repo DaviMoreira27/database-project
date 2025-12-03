@@ -35,7 +35,6 @@ export class Login {
 
   protected readonly roles = [
     { label: 'Gerente', value: 'GERENTE' },
-    { label: 'Administrador', value: 'ADMINISTRADOR', disabled: true },
   ];
 
   protected loading = signal(false);

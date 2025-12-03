@@ -26,11 +26,6 @@ async def receita_mensal(cnpj: str):
     return await dashboard_service.receita_mensal(cnpj)
 
 
-@router.get("/sessoes-por-dia/{cnpj}")
-async def sessoes_por_dia(cnpj: str):
-    return await dashboard_service.sessoes_por_dia(cnpj)
-
-
 @router.get("/totens-ativos/{cnpj}")
 async def totens_ativos(cnpj: str):
     return await dashboard_service.totens_ativos(cnpj)

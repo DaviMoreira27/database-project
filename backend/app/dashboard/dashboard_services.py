@@ -64,17 +64,6 @@ class DashboardService:
             return await self._repo.totens_ativos(cnpj)
 
         except (InternalDatabaseError, DashboardQueryError):
-            logger.error("Erro ao consultar totens ativos")
-            raise HTTPException(
-                status_code=500,
-                detail="Erro interno ao consultar totens ativos"
-            )
-
-    async def sessoes_por_dia(self, cnpj: str):
-        try:
-            return await self._repo.sessoes_por_dia(cnpj)
-
-        except (InternalDatabaseError, DashboardQueryError):
             logger.error("Erro ao consultar sessões por dia")
             raise HTTPException(
                 status_code=500,

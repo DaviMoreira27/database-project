@@ -6,7 +6,6 @@ from app.dashboard.dashboard_types import (
     BicicletasEstacionadasResponse,
     ProblemasAvaliacoesResponse,
     ReceitaMensalResponse,
-    SessoesPorDiaResponse,
     TaxaOcupacaoResponse,
     TotensAtivosResponse,
 )
@@ -195,24 +194,4 @@ class DashboardRepositories:
             logger.error(f"Erro SQL em totens_ativos: {e}")
             raise DashboardQueryError("Falha ao consultar totens ativos") from e
 
-    async def sessoes_por_dia(self, cnpj: str):
-        query = """
-            SELECT
-                sr.data,
-                COUNT(*) AS total_sessoes
-            FROM sessao_recarga sr
-            JOIN totens_de_recarga td ON td.n_registro = sr.totem
-            JOIN infraestrutura i ON i.n_registro = td.n_registro
-            WHERE i.provedora = $1
-            GROUP BY sr.data
-            ORDER BY sr.data;
-        """
-
-        try:
-            conn = await self.db.db_connection()
-            rows = await conn.fetch(query, cnpj)
-            return [SessoesPorDiaResponse(**dict(r)) for r in rows]
-
-        except asyncpg.PostgresError as e:
-            logger.error(f"Erro SQL em sessoes_por_dia: {e}")
-            raise DashboardQueryError("Falha ao consultar sessões por dia") from e
+    

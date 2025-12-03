@@ -30,10 +30,5 @@ class ReceitaMensalResponse(BaseModel):
     receita: float
 
 
-class SessoesPorDiaResponse(BaseModel):
-    data: date
-    total_sessoes: int
-
-
 class TotensAtivosResponse(BaseModel):
     n_registro: str

@@ -147,18 +147,27 @@ ORDER BY mes;
 
 ----------------------------------------------------------------------------------------------------------------------------
 
--- Quantidade de sessões de recarga por dia. (media)
-SELECT
-    sr.data,
-    COUNT(*) AS total_sessoes
-FROM sessao_recarga sr
-JOIN totens_de_recarga td ON td.n_registro = sr.totem
+-- Totens da provedora que tiveram sessão de recarga em TODOS os dias em que a provedora teve operação.
+
+SELECT td.n_registro
+FROM totens_de_recarga td
 JOIN infraestrutura i ON i.n_registro = td.n_registro
 WHERE i.provedora = :cnpj_provedora
-GROUP BY sr.data
-ORDER BY sr.data;
--- RETORNO:
--- | data       | total_sessoes |
--- | ---------- | ------------- |
--- | 2025-01-05 | 2             |
--- | 2025-01-06 | 3             |
+AND NOT EXISTS (
+    -- Para cada dia em que a provedora teve alguma sessão...
+    SELECT 1
+    FROM (
+        SELECT DISTINCT sr.data::date AS dia
+        FROM sessao_recarga sr
+        JOIN totens_de_recarga td2 ON td2.n_registro = sr.totem
+        JOIN infraestrutura i2 ON i2.n_registro = td2.n_registro
+        WHERE i2.provedora = :cnpj_provedora
+    ) dias_provedora
+    WHERE NOT EXISTS (
+        -- ...verificar se este totem NÃO teve sessão nesse dia.
+        SELECT 1
+        FROM sessao_recarga sr2
+        WHERE sr2.totem = td.n_registro
+          AND sr2.data::date = dias_provedora.dia
+    )
+);

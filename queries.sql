@@ -171,3 +171,15 @@ AND NOT EXISTS (
           AND sr2.data::date = dias_provedora.dia
     )
 );
+
+-- Busca por gerentes
+SELECT u.cpf, u.nome, u.email, u.cargo
+FROM usuario u
+JOIN gerente g ON g.cpf = u.cpf
+WHERE u.cargo = 'GERENTE'
+  AND (
+        LOWER(u.cpf)   LIKE CONCAT('%', :busca, '%') OR
+        LOWER(u.nome)  LIKE CONCAT('%', :busca, '%') OR
+        LOWER(u.email) LIKE CONCAT('%', :busca, '%') OR
+        LOWER(u.cargo) LIKE CONCAT('%', :busca, '%')
+      );
